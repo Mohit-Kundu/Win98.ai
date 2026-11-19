@@ -1,0 +1,195 @@
+/* Layout only. Window chrome, title bars, buttons and status fields come from 98.css. */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.desktop {
+  position: fixed;
+  inset: 0;
+  background: #008080;
+  font-family: Arial, sans-serif;
+  user-select: none;
+}
+
+.workspace {
+  position: absolute;
+  inset: 0 0 28px 0;
+  overflow: hidden;
+}
+
+.desktop-icons {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.desktop-icon {
+  width: 76px;
+  min-height: 70px;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px dotted transparent;
+  box-shadow: none;
+  color: #fff;
+  font-size: 11px;
+  text-align: center;
+}
+
+.desktop-icon.selected span {
+  background: #000080;
+  outline: 1px dotted #ff0;
+}
+
+.win-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.win-body {
+  flex: 1;
+  margin: 0;
+  overflow: auto;
+  min-height: 0;
+}
+
+.error-boundary {
+  padding: 8px;
+}
+
+.taskbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  background: silver;
+  box-shadow: inset 0 1px #dfdfdf, 0 -1px #fff;
+  z-index: 100000;
+}
+
+.start-button {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  min-width: 54px;
+  padding: 0 6px;
+}
+
+.start-button.pressed {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
+.task-buttons {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 2px;
+}
+
+.task-button {
+  flex: 0 1 160px;
+  min-width: 40px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.task-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-button.active {
+  font-weight: bold;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
+.tray-clock {
+  min-width: 56px;
+  text-align: center;
+  padding: 2px 8px;
+}
+
+.start-menu {
+  position: absolute;
+  left: 2px;
+  bottom: 30px;
+  z-index: 100001;
+  display: flex;
+  min-width: 180px;
+  padding: 2px;
+}
+
+.start-banner {
+  width: 24px;
+  background: linear-gradient(0deg, #000080, #1084d0);
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.start-banner span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: 6px 0;
+  font-size: 16px;
+}
+
+.start-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+.start-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 2px 8px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  text-align: left;
+}
+
+.start-item:hover,
+.start-item:focus {
+  background: #000080;
+  color: #fff;
+}
+
+.start-empty {
+  padding: 8px;
+  color: grey;
+}

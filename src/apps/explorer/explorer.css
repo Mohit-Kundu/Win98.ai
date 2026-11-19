@@ -1,0 +1,146 @@
+.explorer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 11px;
+  user-select: none;
+}
+.explorer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+}
+.explorer-path {
+  flex: 1;
+  margin-left: 6px;
+  padding: 2px 4px;
+  background: #fff;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px grey;
+}
+.explorer-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  gap: 2px;
+}
+.explorer-tree-pane {
+  width: 160px;
+  overflow: auto;
+  background: #fff;
+}
+.explorer-tree,
+.explorer-tree ul {
+  margin: 0;
+}
+.explorer-tree button {
+  all: unset;
+  cursor: default;
+}
+.explorer-tree-toggle {
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+.explorer-tree-label.selected {
+  background: #000080;
+  color: #fff;
+}
+.explorer-list {
+  flex: 1;
+  overflow: auto;
+  background: #fff;
+}
+.explorer-row {
+  display: grid;
+  grid-template-columns: 20px minmax(100px, 2fr) 80px 120px 150px;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 2px;
+}
+.explorer-head {
+  font-weight: bold;
+  background: silver;
+  position: sticky;
+  top: 0;
+}
+.explorer-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+}
+.explorer-search input[type='search'] {
+  flex: 1;
+  min-width: 160px;
+}
+.explorer-row.explorer-result {
+  grid-template-columns: 20px minmax(100px, 1.5fr) minmax(80px, 1.5fr) 120px minmax(100px, 2fr) 56px;
+}
+.explorer-result span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.explorer-row.selected {
+  background: #000080;
+  color: #fff;
+}
+.explorer-ai-error {
+  color: #c00000;
+  font-weight: bold;
+}
+.explorer-row.selected .explorer-ai-error {
+  color: #ffff00;
+}
+.explorer-empty {
+  padding: 8px;
+  color: grey;
+}
+.explorer-menu {
+  position: fixed;
+  z-index: 100001;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+  background: silver;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+.explorer-menu button {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 3px 20px;
+  cursor: default;
+}
+.explorer-menu button:hover {
+  background: #000080;
+  color: #fff;
+}
+
+.organize-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.organize-table th {
+  text-align: left;
+}
+.organize-table td {
+  padding: 2px 4px 2px 0;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.organize-table input[type='text'] {
+  width: 100%;
+  box-sizing: border-box;
+}
+.organize-new {
+  color: #000080;
+}

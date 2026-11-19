@@ -1,0 +1,9 @@
+{
+  "name": "search-ml",
+  "match": "machine learning",
+  "steps": [
+    { "calls": [{ "name": "search_files", "args": { "text": "machine learning" } }] },
+    { "calls": [{ "name": "open_file", "args": { "fileId": "{{step1.hits.0.id}}" } }] },
+    { "text": "I found and opened the machine learning document." }
+  ]
+}

@@ -1,0 +1,32 @@
+.ui-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+}
+.ui-modal {
+  min-width: 280px;
+  max-width: 460px;
+}
+.ui-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 10px;
+}
+.ui-modal p {
+  white-space: pre-line;
+}
+.ui-modal dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 10px;
+  margin: 0 0 8px;
+}
+.ui-modal dd {
+  margin: 0;
+  word-break: break-word;
+}

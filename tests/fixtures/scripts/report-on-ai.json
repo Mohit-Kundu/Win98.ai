@@ -1,0 +1,40 @@
+{
+  "name": "report-on-ai",
+  "match": "report on ai",
+  "steps": [
+    {
+      "calls": [
+        {
+          "name": "create_document",
+          "args": {
+            "path": "C:\\My Documents\\Report on AI.wpd",
+            "contentHtml": "<h1>Report on AI</h1><h2>History of LLMs</h2><p>Language models evolved from n-gram statistics through recurrent networks to the transformer architecture introduced in 2017, followed by large pretrained models.</p><h2>How LLMs Work</h2><p>Large language models tokenize text, embed tokens, and use stacked attention layers to predict the next token, trained on large corpora and refined with human feedback.</p><h2>Applications</h2><p>Common uses include writing assistance, code generation, search, translation, summarization, and customer support.</p><h2>Implications</h2><p>LLMs affect productivity, education, and labor markets, and raise questions about accuracy, bias, privacy, and misuse.</p><h2>Data Centers</h2><p>Training and serving LLMs relies on data centers full of accelerators, with large demands for electricity, cooling, and water.</p>"
+          }
+        }
+      ]
+    },
+    {
+      "calls": [
+        {
+          "name": "generate_image",
+          "args": { "prompt": "A modern data center with rows of server racks", "path": "C:\\My Pictures\\data-center.png" }
+        }
+      ]
+    },
+    {
+      "calls": [
+        {
+          "name": "insert_image_into_document",
+          "args": {
+            "documentId": "{{step1.fileId}}",
+            "imageId": "{{step2.fileId}}",
+            "position": { "afterHeading": "Data Centers" },
+            "alt": "Data center"
+          }
+        }
+      ]
+    },
+    { "calls": [{ "name": "open_file", "args": { "fileId": "{{step1.fileId}}" } }] },
+    { "text": "Your report is saved at {{step1.path}} with the image {{step2.path}} in the Data Centers section, and it is open in WordPad." }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "create-folder",
+  "match": "create a folder called .+ in my documents",
+  "steps": [
+    { "calls": [{ "name": "create_folder", "args": { "path": "C:\\My Documents\\AI Research" } }] },
+    { "text": "I created the folder AI Research in My Documents." }
+  ]
+}

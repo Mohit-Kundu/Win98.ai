@@ -1,0 +1,105 @@
+.wordpad {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-size: 11px;
+}
+.wp-menubar {
+  display: flex;
+  gap: 2px;
+  padding: 1px 2px;
+}
+.wp-menu {
+  position: relative;
+}
+.wp-menu > button {
+  min-width: 0;
+  padding: 2px 8px;
+  box-shadow: none;
+}
+.wp-menu-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 140px;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+  background: #c0c0c0;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+.wp-menu-list button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  box-shadow: none;
+}
+.wp-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+}
+.wp-toolbar button {
+  min-width: 24px;
+  padding: 2px 6px;
+}
+.wp-toolbar button[aria-pressed='true'] {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+.wp-page {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #fff;
+  padding: 6px 8px;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px grey;
+  font-size: 13px;
+}
+.wp-page .ProseMirror {
+  min-height: 100%;
+  outline: none;
+}
+.wp-page .ProseMirror img {
+  max-width: 100%;
+}
+.wp-image-missing,
+.wp-image-loading {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px dashed grey;
+  color: #800000;
+}
+.wp-image-loading {
+  color: grey;
+}
+.wp-status {
+  padding: 2px 4px;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px grey;
+}
+.wp-ai-panel {
+  padding: 4px;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+.wp-ai-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.wp-ai-text {
+  margin: 0;
+  max-height: 100px;
+  overflow: auto;
+  white-space: pre-wrap;
+  background: #fff;
+  padding: 2px 4px;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px grey;
+}
+.wp-ai-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}

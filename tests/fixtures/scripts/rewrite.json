@@ -1,0 +1,16 @@
+{
+  "name": "rewrite",
+  "match": "rewrite\\s+(?:the\\s+document\\s+)?\"?([A-Za-z]:\\\\[^\"]+?\\.(?:wpd|txt|md))\"?",
+  "steps": [
+    { "calls": [{ "name": "read_document", "args": { "path": "{{match.1}}" } }] },
+    {
+      "calls": [
+        {
+          "name": "update_document",
+          "args": { "fileId": "{{step1.fileId}}", "mode": "replace", "contentHtml": "<p>[rewritten] This document was rewritten.</p>" }
+        }
+      ]
+    },
+    { "text": "I rewrote the document at {{match.1}}." }
+  ]
+}
