@@ -49,6 +49,32 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe('Clippy fallback button', () => {
+  it('hides clippy-toggle once the agent is ready', async () => {
+    const { initAgent } = await import('clippyjs');
+    render(<Clippy deps={{ buildContext: () => ({}) }} />);
+    await waitFor(() => expect(initAgent).toHaveBeenCalled());
+    // The mocked agent element is detached, so let the init promise settle instead.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
+    expect(screen.queryByTestId('clippy-toggle')).toBeNull();
+  });
+
+  it('shows clippy-toggle when the agent fails to load, and it opens the chat', async () => {
+    const { initAgent } = await import('clippyjs');
+    vi.mocked(initAgent).mockRejectedValueOnce(new Error('boom'));
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    useChatStore.getState().setOpen(false);
+    render(<Clippy deps={{ buildContext: () => ({}) }} />);
+    const toggle = await screen.findByTestId('clippy-toggle');
+    expect(spy).toHaveBeenCalled();
+    fireEvent.click(toggle);
+    expect(screen.getByTestId('clippy-chat')).toBeTruthy();
+    spy.mockRestore();
+  });
+});
+
 describe('Clippy chat', () => {
   it('keeps session history and passes prior turns to the next run', async () => {
     const runs: OrchestratorRun[] = [];

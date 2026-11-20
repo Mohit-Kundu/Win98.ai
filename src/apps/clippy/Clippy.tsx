@@ -53,6 +53,7 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
   const messages = useChatStore((s) => s.messages);
   const liveSteps = useChatStore((s) => s.liveSteps);
   const [text, setText] = useState('');
+  const [agentStatus, setAgentStatus] = useState<'loading' | 'ready' | 'failed'>('loading');
   const abortRef = useRef<AbortController | null>(null);
   const speakTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const logRef = useRef<HTMLDivElement>(null);
@@ -148,17 +149,19 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
 
   return (
     <>
-      <ClippyAgent state={phase} onClick={() => useChatStore.getState().setOpen(!open)} />
-      <button
-        type="button"
-        className="clippy-toggle"
-        data-testid="clippy-toggle"
-        aria-expanded={open}
-        title="Ask Clippy"
-        onClick={() => useChatStore.getState().setOpen(!open)}
-      >
-        Ask Clippy
-      </button>
+      <ClippyAgent state={phase} onClick={() => useChatStore.getState().setOpen(!open)} onStatus={setAgentStatus} />
+      {agentStatus === 'failed' && (
+        <button
+          type="button"
+          className="clippy-toggle"
+          data-testid="clippy-toggle"
+          aria-expanded={open}
+          title="Ask Clippy"
+          onClick={() => useChatStore.getState().setOpen(!open)}
+        >
+          Ask Clippy
+        </button>
+      )}
       {open && (
         <div className="window clippy-chat" role="dialog" aria-label="Clippy" data-testid="clippy-chat">
           <div className="title-bar">

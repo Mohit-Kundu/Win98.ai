@@ -80,7 +80,7 @@ test.describe('E2E 8: Report on AI demo', () => {
     await freshDesktop(page);
 
     // Ask Clippy.
-    await page.getByTestId('clippy-toggle').click();
+    await page.getByTestId('clippy-agent').click();
     const chat = page.getByTestId('clippy-chat');
     await expect(chat).toBeVisible();
     await chat.getByTestId('clippy-input').fill(

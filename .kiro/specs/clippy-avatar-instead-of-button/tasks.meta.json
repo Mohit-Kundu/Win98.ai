@@ -1,0 +1,129 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "1280x720: rect top=720, bottom=813 (innerHeight 720, limit 692), left=0, z-index 10001, elementFromPoint at center = null (off-screen). Same at 1024x768 (top 768, bottom 861) and 1920x1080 (top 1080, bottom 1173).",
+      "lastRunTimestamp": 1795149041889
+    },
+    "3.2 Verify bug condition exploration test now passes": {
+      "status": "passed",
+      "lastRunTimestamp": 1795149468346
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795148983478
+      },
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795148987874
+      },
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149051258
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795148983759
+      },
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149053535
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149314564
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149346062
+      }
+    ],
+    "3.1 Implement the fix": [
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795148983910
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149348194
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149442343
+      }
+    ],
+    "3.2 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795148984060
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149444566
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149474270
+      }
+    ],
+    "3.3 Verify preservation tests still pass": [
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795148984205
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149476494
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149517108
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "93b79fb2-33b0-4185-a71b-8da3fd1156e7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795148984343
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149519474
+      },
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149597256
+      }
+    ],
+    "3. Fix for Clippy character not visible (agent placed below viewport, button always shown)": [
+      {
+        "executionId": "fbf047cb-d966-45ea-ad12-c78750148bb7",
+        "chatSessionId": "sess_975e8228-f45a-4105-ac8c-057e144d7264",
+        "timestamp": 1795149517387
+      }
+    ]
+  }
+}

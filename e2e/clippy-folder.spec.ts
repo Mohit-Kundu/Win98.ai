@@ -41,7 +41,7 @@ test.describe('E2E 7: Clippy folder creation', () => {
 
     // Ask Clippy.
     const chat = page.getByTestId('clippy-chat');
-    if (!(await chat.isVisible())) await page.getByTestId('clippy-toggle').click();
+    if (!(await chat.isVisible())) await page.getByTestId('clippy-agent').click();
     await expect(chat).toBeVisible();
     await page.getByTestId('clippy-input').fill('Create a folder called AI Research in My Documents');
     await page.getByTestId('clippy-send').click();

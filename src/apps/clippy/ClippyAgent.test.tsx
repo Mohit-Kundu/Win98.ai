@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { render, waitFor, act } from '@testing-library/react';
+import fc from 'fast-check';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const agents: Array<ReturnType<typeof makeAgent>> = [];
@@ -21,6 +22,7 @@ vi.mock('clippyjs', () => ({
   }),
 }));
 
+import { initAgent } from 'clippyjs';
 import { ClippyAgent } from './ClippyAgent';
 
 const a0 = () => agents[0] as ReturnType<typeof makeAgent>;
@@ -55,6 +57,58 @@ describe('ClippyAgent', () => {
       el.dispatchEvent(new MouseEvent('mouseup', { clientX: 80, clientY: 50 }));
     });
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('places the agent bottom-right above the taskbar with the right z-index', async () => {
+    vi.mocked(initAgent).mockImplementationOnce((async () => {
+      const a = makeAgent();
+      Object.defineProperty(a._el, 'offsetWidth', { value: 124 });
+      Object.defineProperty(a._el, 'offsetHeight', { value: 93 });
+      agents.push(a);
+      return a;
+    }) as unknown as typeof initAgent);
+    Object.assign(window, { innerWidth: 1280, innerHeight: 720 });
+    const onStatus = vi.fn();
+    render(<ClippyAgent state="idle" onStatus={onStatus} />);
+    await waitFor(() => expect(onStatus).toHaveBeenCalledWith('ready'));
+    const el = a0()._el;
+    expect(el.style.left).toBe(`${1280 - 124 - 8}px`);
+    expect(el.style.top).toBe(`${720 - 93 - 28 - 8}px`);
+    expect(el.style.zIndex).toBe('99992');
+  });
+
+  it('keeps the placed rect inside the viewport above the taskbar for any viewport', async () => {
+    await fc.assert(
+      fc.asyncProperty(fc.integer({ min: 140, max: 3000 }), fc.integer({ min: 140, max: 2000 }), async (w, h) => {
+        agents.length = 0;
+        vi.mocked(initAgent).mockImplementationOnce((async () => {
+          const a = makeAgent();
+          Object.defineProperty(a._el, 'offsetWidth', { value: 124 });
+          Object.defineProperty(a._el, 'offsetHeight', { value: 93 });
+          agents.push(a);
+          return a;
+        }) as unknown as typeof initAgent);
+        Object.assign(window, { innerWidth: w, innerHeight: h });
+        const onStatus = vi.fn();
+        const { unmount } = render(<ClippyAgent state="idle" onStatus={onStatus} />);
+        await waitFor(() => expect(onStatus).toHaveBeenCalledWith('ready'));
+        const left = parseFloat(a0()._el.style.left);
+        const top = parseFloat(a0()._el.style.top);
+        unmount();
+        return left >= 0 && top >= 0 && left + 124 <= w && top + 93 <= h - 28;
+      }),
+      { numRuns: 25 },
+    );
+  });
+
+  it('reports failed and logs when initAgent rejects', async () => {
+    vi.mocked(initAgent).mockRejectedValueOnce(new Error('boom'));
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onStatus = vi.fn();
+    render(<ClippyAgent state="idle" onStatus={onStatus} />);
+    await waitFor(() => expect(onStatus).toHaveBeenCalledWith('failed'));
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
   });
 
   it('disposes on unmount and leaves one live agent under StrictMode', async () => {

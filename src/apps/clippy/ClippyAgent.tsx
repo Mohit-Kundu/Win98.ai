@@ -6,6 +6,8 @@ export type ClippyState = 'idle' | 'thinking' | 'speaking';
 export interface ClippyAgentProps {
   state: ClippyState;
   onClick?: () => void;
+  /** Reports whether the agent loaded ('ready') or failed to load ('failed'). */
+  onStatus?: (s: 'ready' | 'failed') => void;
 }
 
 /** Minimal surface of a clippyjs Agent that this component uses. */
@@ -14,11 +16,16 @@ interface AgentLike {
   play(animation: string, timeout?: number, cb?: () => void): unknown;
   stop(): void;
   dispose(): void;
+  reposition?(): void;
   _el?: HTMLElement;
 }
 
 const BASE = '/clippy/';
 const THINK_MS = 4000;
+const TASKBAR_H = 28;
+const MARGIN = 8;
+/** Above .clippy-chat (99991) and windows, below the taskbar (100000). */
+const AGENT_Z = '99992';
 
 // Assets are served from public/clippy/ (see scripts/copy-clippy-assets.mjs). No CDN, no TTS.
 const loaders = {
@@ -32,12 +39,14 @@ const loaders = {
  * Floating, draggable Clippy. Drag and positioning are provided by clippyjs.
  * idle -> library idle animations, thinking -> "Thinking" loop, speaking -> "Explain".
  */
-export function ClippyAgent({ state, onClick }: ClippyAgentProps) {
+export function ClippyAgent({ state, onClick, onStatus }: ClippyAgentProps) {
   const agentRef = useRef<AgentLike | null>(null);
   const stateRef = useRef(state);
   const clickRef = useRef(onClick);
+  const statusRef = useRef(onStatus);
   stateRef.current = state;
   clickRef.current = onClick;
+  statusRef.current = onStatus;
 
   // Mount / unmount the agent. `cancelled` guards against StrictMode double mount.
   useEffect(() => {
@@ -59,6 +68,11 @@ export function ClippyAgent({ state, onClick }: ClippyAgentProps) {
 
         const el = created._el;
         if (el) {
+          // show(true) skips clippyjs placement, so without this the fixed element sits below the viewport.
+          el.style.zIndex = AGENT_Z;
+          el.style.left = `${Math.max(0, window.innerWidth - el.offsetWidth - MARGIN)}px`;
+          el.style.top = `${Math.max(0, window.innerHeight - el.offsetHeight - TASKBAR_H - MARGIN)}px`;
+          created.reposition?.();
           el.setAttribute('data-testid', 'clippy-agent');
           let down: { x: number; y: number } | null = null;
           const onDown = (e: MouseEvent) => {
@@ -75,9 +89,11 @@ export function ClippyAgent({ state, onClick }: ClippyAgentProps) {
             el.removeEventListener('mouseup', onUp);
           };
         }
+        statusRef.current?.('ready');
       })
       .catch((err) => {
         console.error('Clippy failed to load', err);
+        if (!cancelled) statusRef.current?.('failed');
       });
 
     return () => {
