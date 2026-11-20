@@ -373,6 +373,17 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
     }
   };
 
+  // Close the open menu when the user presses anywhere outside a menu.
+  useEffect(() => {
+    if (!menu) return;
+    const onDown = (e: Event) => {
+      if (e.target instanceof Element && e.target.closest('.wp-menu')) return;
+      setMenu(null);
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [menu]);
+
   const toggle = (name: string) => setMenu((m) => (m === name ? null : name));
   const item = (label: string, onClick: () => void, disabled = false) => (
     <li role="none" key={label}>
