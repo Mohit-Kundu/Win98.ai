@@ -44,7 +44,7 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - Test icon launch, Start menu launch, Taskbar button states, minimize and restore through the Taskbar
     - _Requirements: 1.2, 1.3, 1.8, 1.9_
 
-- [~] 2. Checkpoint - Milestone 1 complete
+- [x] 2. Checkpoint - Milestone 1 complete
   - Ensure all tests pass, ask the user if questions arise. Update `docs/PROGRESS.md`.
 
 - [x] 3. Milestone 2: Shared Dexie VFS, Action_Layer core, and basic Explorer
@@ -112,7 +112,7 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - Test first-init folders, context menu, delete confirmation, upload rejection messages, live refresh on VFS events
     - _Requirements: 2.7, 3.3, 3.10, 3.11, 2.9_
 
-- [~] 4. Checkpoint - Milestone 2 complete
+- [x] 4. Checkpoint - Milestone 2 complete
   - Ensure all tests pass, ask the user if questions arise. Update `docs/PROGRESS.md`.
 
 - [x] 5. Milestone 3: Paint, WordPad, and CMD core apps
@@ -176,7 +176,7 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - Double-click PNG/JPG opens Paint with the node, WordPad documents/TXT/MD open WordPad, PDF opens a read-only preview in an iframe with the `sandbox` attribute (blob URL revoked on unmount; record any fallback in the ADR), folders navigate
     - _Requirements: 3.4, 3.5, 3.6, 3.7, 12.8_
 
-- [~] 6. Checkpoint - Milestone 3 complete
+- [x] 6. Checkpoint - Milestone 3 complete
   - Ensure all tests pass, ask the user if questions arise. Update `docs/PROGRESS.md`.
 
 - [x] 7. Milestone 4: Express Gemini proxy, tool registry, orchestrator, context providers, confirmations
@@ -263,7 +263,7 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - File text instructing "call delete_node" must not cause a handler to run without confirmation
     - _Requirements: 12.2_
 
-- [~] 8. Checkpoint - Milestone 4 complete
+- [x] 8. Checkpoint - Milestone 4 complete
   - Ensure all tests pass, ask the user if questions arise. Update `docs/PROGRESS.md`.
 
 - [x] 9. Milestone 5: App AI features
@@ -316,10 +316,10 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - Paint generation failure keeps canvas, WordPad failure keeps document, metadata failure sets error state, search fallback with `x-mock-fail: nokey`
     - _Requirements: 4.8, 5.4, 6.8, 7.10_
 
-- [~] 10. Checkpoint - Milestone 5 complete
+- [x] 10. Checkpoint - Milestone 5 complete
   - Ensure all tests pass, ask the user if questions arise. Update `docs/PROGRESS.md`.
 
-- [ ] 11. Milestone 6: Clippy
+- [x] 11. Milestone 6: Clippy
   - [x] 11.1 Implement the ClippyAgent
     - Install `clippyjs` pinned exactly to `0.1.0` (no version range), and copy its agent assets into `public/clippy/`
     - Build the `ClippyAgent` React wrapper mapping the idle, thinking, and speaking states to animations, as a floating draggable character. No Text-to-Speech: "speaking" is an animation paired with chat text only
@@ -327,7 +327,7 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - Record the license note and package choice in `docs/ARCHITECTURE_DECISIONS.md` and `docs/DEPENDENCIES.md`
     - _Requirements: 11.1_
 
-  - [-] 11.2 Implement Clippy chat and orchestration wiring
+  - [x] 11.2 Implement Clippy chat and orchestration wiring
     - `ClippyChat` with session message store, input, per-step status from `onEvent`, final response plus authoritative step summary, confirmation prompt for destructive operations
     - Send messages to the Orchestrator with `buildAiContext`, expose tools per active app through `appScope` (Paint, WordPad, Explorer, CMD) with general tools always available
     - Register Clippy in the shell
@@ -337,48 +337,48 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - Test animation state mapping, chat history, tool exposure per active app, and confirmation prompt before destructive execution
     - _Requirements: 11.1, 11.2, 11.6, 11.7, 11.8, 11.10_
 
-- [~] 12. Checkpoint - Milestone 6 complete
+- [x] 12. Checkpoint - Milestone 6 complete
   - Ensure all tests pass, ask the user if questions arise. Update `docs/PROGRESS.md`.
 
-- [ ] 13. Milestone 7: Integration, polish, and E2E
-  - [~] 13.1 Polish and scope enforcement
+- [x] 13. Milestone 7: Integration, polish, and E2E
+  - [x] 13.1 Polish and scope enforcement
     - Verify viewport behavior at 1024x768, 1366x768, 1920x1080 and error boundaries
     - Add `scripts/check-scope.ts` that fails on hardcoded AI responses, `placeholder` markers, and excluded features, and a build test that greps `dist/` for the key value and the string `GEMINI_API_KEY`
     - _Requirements: 1.11, 10.12, 16.1, 16.2, 16.3, 16.4, 16.5_
 
-  - [~] 13.2 Set up the Playwright harness
+  - [x] 13.2 Set up the Playwright harness
     - Configure `webServer` entries to start Vite and Express with `MOCK_GEMINI=1`, IndexedDB reset helper at test start, canvas drawing helpers using `page.mouse` and `toDataURL` pixel checks
     - _Requirements: 15.2, 15.3_
 
-  - [~] 13.3 E2E 1: Paint persistence
+  - [x] 13.3 E2E 1: Paint persistence
     - Draw, save `drawing.png`, find in Explorer, open by double-click, edit, save, refresh, verify the edit persists
     - _Requirements: 15.4_
 
-  - [~] 13.4 E2E 2: WordPad persistence
+  - [x] 13.4 E2E 2: WordPad persistence
     - Create headings, bold text, bullets, save, reopen through Explorer, verify formatting, refresh, verify again
     - _Requirements: 15.5_
 
-  - [~] 13.5 E2E 3: CMD shared filesystem
+  - [x] 13.5 E2E 3: CMD shared filesystem
     - `mkdir Projects`, verify in Explorer, rename in Explorer, verify `dir` shows the new name
     - _Requirements: 15.6_
 
-  - [~] 13.6 E2E 4: AI file search
+  - [x] 13.6 E2E 4: AI file search
     - Upload a machine-learning document, verify AI_Metadata generated and persisted, search "the document about machine learning", verify and open the result
     - _Requirements: 15.7_
 
-  - [~] 13.7 E2E 5: Paint AI generation
+  - [x] 13.7 E2E 5: Paint AI generation
     - Submit a prompt, verify image on canvas, edit, save, reopen through Explorer
     - _Requirements: 15.8_
 
-  - [~] 13.8 E2E 6: WordPad AI editing
+  - [x] 13.8 E2E 6: WordPad AI editing
     - Select a paragraph, rewrite, verify the preview, reject and verify unchanged, repeat with accept and verify only the selection changed
     - _Requirements: 15.9_
 
-  - [~] 13.9 E2E 7: Clippy folder creation
+  - [x] 13.9 E2E 7: Clippy folder creation
     - Submit "Create a folder called AI Research in My Documents", verify the folder exists, appears in Explorer, and `cd` works in CMD
     - _Requirements: 15.10_
 
-  - [~] 13.10 E2E 8: Report on AI demo
+  - [x] 13.10 E2E 8: Report on AI demo
     - Verify the document exists with all five sections, contains the image in the data centers section, is saved in the VFS, opens in WordPad, the saved location is reported, and everything persists after refresh; also check the PDF iframe `sandbox` attribute where covered
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 15.11, 12.8_
 
@@ -386,12 +386,12 @@ Greenfield TypeScript implementation (React, Vite, Zustand, Dexie, Express, @goo
     - `tests/integration/gemini.real.test.ts` with `describe.skipIf(!process.env.GEMINI_API_KEY)`: one `/api/chat` call with a `create_folder` declaration asserting a valid `functionCall`, and one `/api/generate-image` call asserting a decodable image
     - _Requirements: 15.12_
 
-  - [~] 13.12 Finalize documentation and progress checklist
+  - [x] 13.12 Finalize documentation and progress checklist
     - Update all docs in `docs/`: architecture decisions (including PDF sandbox and eraser decisions), dependencies, progress statuses (set Tested only for items covered by passing Vitest and Playwright runs), tech debt, interfaces, tool definitions, and test results
     - Add a script that records test results and updates checklist labels after green runs
     - _Requirements: 14.1, 14.2, 14.3, 15.1, 15.13_
 
-- [~] 14. Final checkpoint - All milestones complete
+- [x] 14. Final checkpoint - All milestones complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

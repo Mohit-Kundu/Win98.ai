@@ -45,6 +45,8 @@ Fabric v6 ships the eraser in a separate package. For the MVP the eraser is a wh
 
 Evaluated (task 5.13). In Chromium (Playwright chromium-1187, headless), a blob-URL PDF in an iframe renders a blocked/sad-face frame with `sandbox=""`, `sandbox="allow-same-origin"` and `sandbox="allow-scripts allow-same-origin"`. It only loads without a `sandbox` attribute, so the built-in viewer cannot be used under Req 12.8. Decision: render pages with `pdfjs-dist` (lazy import, worker via Vite `?url`, max 50 pages, no eval) into PNG data URLs and show them as `<img>` tags in `<iframe sandbox="" srcdoc>`. The frame has no scripts, no same-origin access, and no blob URLs to revoke. `pdfjs-dist` is also reused for text extraction in task 9.4. Cost: about 1 MB extra lazy chunk and non-selectable text in the preview.
 
+## ADR-10: Playwright harness
+`playwright.config.ts` starts Vite and Express (`MOCK_GEMINI=1`) as web servers and runs one worker so tests do not share the IndexedDB origin. Each test resets IndexedDB first. Specs live in `e2e/` and assert persisted bytes and VFS state, not only visible text. `npm test` runs `check-docs` and `check-scope` before Vitest. `npm run record-results` runs Vitest then Playwright and, only when both are green, writes `TEST_RESULTS.md` and promotes covered `PROGRESS.md` items to Tested.
 ## ADR-9: Mock_Gemini
 
 `server/mockGemini.ts`, enabled only with `MOCK_GEMINI=1`, replaces only the Gemini call layer. Routes, validation, limits, and error mapping are the real code. It is excluded from the production start script.

@@ -32,7 +32,7 @@ export function useObjectUrl(vfsId: string | null): ImageState {
   return state;
 }
 
-/** NodeView for the shared image node. Missing images show a placeholder and the document stays unchanged. */
+/** NodeView for the shared image node. Missing images show an "Image not found" notice and the document stays unchanged. */
 export function VfsImageView({ node }: NodeViewProps) {
   const vfsId = (node.attrs.vfsId as string | null) ?? null;
   const alt = (node.attrs.alt as string | null) ?? '';

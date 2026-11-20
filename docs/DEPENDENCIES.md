@@ -27,14 +27,13 @@ Libraries are installed in the task that first uses them. Each entry records the
 |---|---|---|
 | express | AI_Proxy HTTP server | 7.2 |
 | @google/genai | Gemini SDK (server only) | 7.2 |
-| tsx | Runs the TypeScript server (
-pm run server, port 8787) | 7.2 |
+| tsx | Runs the TypeScript server (`npm run server`, port 8787) | 7.2 |
 | @types/express | Express types | 7.2 |
 | supertest, @types/supertest | HTTP tests for the proxy (used in 7.2, extended in 7.5) | 7.2 |
 
 Task 1.5: no new dependency. Desktop icons are a small local inline-SVG set in `src/desktop/icons.tsx`.
 
-Planned: TipTap, Fabric.js, @xterm/xterm, pdfjs-dist, MiniSearch, chrono-node, DOMPurify, Express, supertest, @google/genai, clippyjs (pinned 0.1.0).
+All planned libraries are installed (TipTap, Fabric.js, @xterm/xterm, pdfjs-dist, MiniSearch, chrono-node, DOMPurify, Express, supertest, @google/genai, clippyjs 0.1.0). pdfjs-dist 6.5.438 is used for the PDF preview (ADR-8) and text extraction (9.4). `@playwright/test` runs E2E (13.2). Versions are the ones in `package.json`.
 
 ## Selection summary and decisions
 
@@ -60,9 +59,9 @@ Planned: TipTap, Fabric.js, @xterm/xterm, pdfjs-dist, MiniSearch, chrono-node, D
 
 | Package | Version | Use |
 |---|---|---|
-| @tiptap/core, @tiptap/pm, @tiptap/starter-kit (includes Underline), @tiptap/extension-image, @tiptap/extension-underline, @tiptap/html | 3.34.0 | WordPad schema, \.wpd\ JSON, HTML to JSON, headless doc edits in \src/actions\ |
+| @tiptap/core, @tiptap/pm, @tiptap/starter-kit (includes Underline), @tiptap/extension-image, @tiptap/extension-underline, @tiptap/html | 3.34.0 | WordPad schema, `.wpd` JSON, HTML to JSON, headless doc edits in `src/actions` |
 | @tiptap/react | 3.34.0 | WordPad editor component and image NodeView (`src/apps/wordpad`) |
-| dompurify | 3.4.18 | \sanitizeHtml\ allow-list (design: WordPad document representation) |
+| dompurify | 3.4.18 | `sanitizeHtml` allow-list (design: WordPad document representation) |
 
 ## Installed in task 5.10
 

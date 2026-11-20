@@ -5,13 +5,13 @@ Authoritative definitions are in `design.md` ("Components and Interfaces"). This
 | Interface | Location | Status |
 |---|---|---|
 | `AppError`, `ErrorCode`, `Result<T>` | `shared/errors.ts` | Implemented (1.1) |
-| `WindowState`, `WindowStore` | `src/store/windows.ts` | In progress (1.2) |
-| API request/response schemas | `shared/api-contracts.ts` | In progress (7.1) |
-| `NodeRecord`, `NodeMeta`, `ContentRecord`, `VfsService`, `VfsEvent` | `src/vfs/` | Planned (3.1, 3.2) |
-| `CoreActions` (core subset of `Actions`, see below) | `src/actions/` | Implemented (3.11). Remaining actions: 5.1, 5.10, 9.6, 9.8 |
-| `ToolDef`, `ToolContext` | `src/ai/registry.ts` | Planned (7.7) |
+| `WindowState`, `WindowStore` | `src/store/windows.ts` | Implemented, tested (1.2) |
+| API request/response schemas | `shared/api-contracts.ts` | Implemented, tested (7.1) |
+| `NodeRecord`, `NodeMeta`, `ContentRecord`, `VfsService`, `VfsEvent` | `src/vfs/` | Implemented, tested (3.1, 3.2) |
+| `CoreActions` (core subset of `Actions`, see below) | `src/actions/` | Implemented (3.11). The remaining actions (5.1, 5.10, 9.6, 9.8) are implemented too |
+| `ToolDef`, `ToolContext` | `src/ai/registry.ts` | Implemented, tested (7.7) |
 | `OrchestratorRun`, `OrchestratorResult`, `AiContextSnapshot` | `src/ai/orchestrator.ts`, `src/ai/types.ts` | Implemented (7.12) |
-| `AppContextProvider`, `AppContextSnapshot` | `src/ai/context.tsx` | Planned (7.10) |
+| `AppContextProvider`, `AppContextSnapshot` | `src/ai/context.tsx` | Implemented, tested (7.10) |
 
 ## HTTP endpoints (AI_Proxy)
 
@@ -68,7 +68,7 @@ useContextProvider(appId, windowId, describe: () => AppContextSnapshot | undefin
 registerContextProvider({ appId, windowId, describe }): () => void
 buildAiContext(focusedWindowId?): AiContextSnapshot  // defaults to useWindowStore focusedId
 // AppContextSnapshot: wordpad {fileId,path,selection,docTextExcerpt} | paint {fileId,path,dirty,width,height} | explorer {folderId,folderPath,selectedIds} | cmd {cwd}
-```n
+```
 Only the focused window's provider is read. selection.text is cut to 4000 chars, docTextExcerpt to 2000. cwdHint is set for cmd and explorer. No file bytes or full documents are included.
 
 

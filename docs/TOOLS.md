@@ -1,6 +1,6 @@
 # AI Tools
 
-Tools are registered in `src/ai/registry.ts` and defined in `src/ai/tools/`. Each tool calls the Action_Layer only. The tools below marked 7.9, `search_files` (9.6), and `organize_files` (9.8) are implemented in `src/ai/tools/` and registered with `registerCoreTools()`. `organize_files` (9.8) is implemented and registered the same way.
+Tools are registered in `src/ai/registry.ts` and defined in `src/ai/tools/`. Each tool calls the Action_Layer only. All tools below are implemented in `src/ai/tools/` and registered with `registerCoreTools()`.
 
 | Tool | Action | Destructive | Task |
 |---|---|---|---|
@@ -27,10 +27,8 @@ Limits: file lists capped at 50 entries, text at 4 KB, `contentHtml` at 64 KB. I
 
 Notes:
 - Destructive predicates are synchronous. A create tool with an existing target and no overwrite returns CONFLICT_OVERWRITE; the model retries with overwrite: true, which triggers confirmation.
-- Tools without ppScope are always exposed. Scoped: update_drawing (paint), 
-un_command (cmd).
-- Results: create_document and generate_image return { fileId, path }; 
-ead_document returns { fileId, path, text, truncated }; create_folder returns { id, path }; list_folder returns at most 50 items with 	otal and 	runcated.
+- Tools without `appScope` are always exposed. Scoped: `update_drawing` (paint), `run_command` (cmd).
+- Results: `create_document` and `generate_image` return `{ fileId, path }`; `read_document` returns `{ fileId, path, text, truncated }`; `create_folder` returns `{ id, path }`; `list_folder` returns at most 50 items with `total` and `truncated`.
 - insert_image_into_document.position is { afterHeading }, { pos }, or omitted (end).
 
 - `search_files` input: `text` (keywords), `type` (pdf, txt, md, wpd, png, jpg, jpeg, folder), and ISO 8601 `createdAfter`, `createdBefore`, `modifiedAfter`, `modifiedBefore` (a date without a time makes an upper bound include that whole day). At least one is required. It returns `{ total, truncated, hits: [{ id, name, path, type, title, description, category, createdAt, modifiedAt }] }`, ranked, at most 50. Scripts reference a hit as `{{step1.hits.0.id}}`. It calls the structured `searchFiles` action directly; natural-language query planning (`/api/search-query`) is used by the Explorer search bar only.

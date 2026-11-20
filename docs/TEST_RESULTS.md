@@ -4,6 +4,7 @@ Record results from green runs only. Mark an item "Tested" in `PROGRESS.md` only
 
 | Date | Suite | Command | Result | Notes |
 |---|---|---|---|---|
-| (none recorded yet) | | | | |
+| 2026-11-19 | Vitest | `npm test` | Pass | 34 files, 264 tests, 0 failures (docs and scope checks included) |
+| 2026-11-19 | Playwright | `npm run e2e` | Pass | 12 tests, 0 failures, 1 worker, Mock_Gemini |
 
-Planned suites: Vitest unit and property tests (`npm test`), integration tests (supertest, fake-indexeddb), Playwright E2E 1 to 8 (`npm run e2e`), optional real-provider test (needs `GEMINI_API_KEY`).
+Not run: optional real-provider test (13.11, needs `GEMINI_API_KEY`). Append new rows with `npm run record-results`, which only writes after green Vitest and Playwright runs.
