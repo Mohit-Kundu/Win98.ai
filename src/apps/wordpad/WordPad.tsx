@@ -96,6 +96,7 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
     extensions: editorExtensions,
     content: emptyDoc(),
     shouldRerenderOnTransaction: true,
+    autofocus: 'end',
     editorProps: { attributes: { role: 'textbox', 'aria-label': 'Document', 'aria-multiline': 'true' } },
     onUpdate: ({ editor: e }) => setDirty(norm(e.getJSON()) !== savedRef.current),
   });
@@ -439,7 +440,16 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
         {tool('Undo', '\u21B6', false, (e) => e.chain().focus().undo().run(), !canUndo)}
         {tool('Redo', '\u21B7', false, (e) => e.chain().focus().redo().run(), !canRedo)}
       </div>
-      <div className="wp-page">
+      <div
+        className="wp-page"
+        onMouseDown={(e) => {
+          // Clicking the padding or blank area below the text should still place the caret.
+          if (e.target === e.currentTarget) {
+            e.preventDefault();
+            editor?.commands.focus('end');
+          }
+        }}
+      >
         <EditorContent editor={editor} />
       </div>
       <PreviewPanel state={ai.state} onAccept={ai.accept} onReject={ai.reject} />
