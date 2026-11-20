@@ -14,3 +14,5 @@
 .paint-ai-error { color: #800000; }
 .paint-ai-buttons { display: flex; gap: 6px; justify-content: flex-end; }
 .paint-ai-overlay { position: absolute; inset: 0; z-index: 10; cursor: progress; background: rgba(192, 192, 192, 0.4); }
+
+.paint:focus { outline: none; }

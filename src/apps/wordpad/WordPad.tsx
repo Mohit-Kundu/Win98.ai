@@ -357,6 +357,19 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
       e.preventDefault();
       save();
+      return;
+    }
+    // Inside the editor, TipTap already binds Ctrl+Z / Ctrl+Y. Cover focus on toolbar or menus.
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || !editor) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('.ProseMirror') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      editor.chain().focus().undo().run();
+    } else if (k === 'y' || (k === 'z' && e.shiftKey)) {
+      e.preventDefault();
+      editor.chain().focus().redo().run();
     }
   };
 

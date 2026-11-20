@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Canvas, Ellipse, FabricImage, Line, PencilBrush, Rect, type FabricObject } from 'fabric';
 import { documentActions, imageActions, readImageFile, type Result } from '../../actions';
 import { fitWithin, MAX_SIDE, runAutomate } from './aiImage';
@@ -350,8 +350,23 @@ export function Paint({ windowId, launchArgs }: AppProps) {
   const hist = historyRef.current;
   const label = file.path ?? 'Untitled';
 
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+    // Leave text editing in inputs (e.g. the AI prompt) to the browser.
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      void undo();
+    } else if (k === 'y' || (k === 'z' && e.shiftKey)) {
+      e.preventDefault();
+      void redo();
+    }
+  };
+
   return (
-    <div className="paint">
+    <div className="paint" tabIndex={-1} onKeyDown={onKeyDown}>
       <div className="paint-toolbar">
         <button type="button" onClick={newDrawing}>New</button>
         <button type="button" onClick={() => void save()}>Save</button>
@@ -376,7 +391,7 @@ export function Paint({ windowId, launchArgs }: AppProps) {
             </select>
           </label>
         </div>
-        <div className="paint-surface">
+        <div className="paint-surface" onPointerDown={(e) => e.currentTarget.parentElement?.parentElement?.focus({ preventScroll: true })}>
           <canvas ref={hostRef} />
         </div>
       </div>
