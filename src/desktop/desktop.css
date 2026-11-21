@@ -132,9 +132,12 @@ body,
 }
 
 .tray-clock {
-  min-width: 56px;
+  flex-grow: 0;
+  width: 72px;
   text-align: center;
-  padding: 2px 8px;
+  padding: 2px 4px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .start-menu {
