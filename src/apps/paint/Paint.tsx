@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import React, { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Canvas, Ellipse, FabricImage, Line, PencilBrush, Rect, type FabricObject } from 'fabric';
+import { PaintPencil, PaintBrush, PaintErasercolor, PaintCurve } from 'react-old-icons';
 import { documentActions, imageActions, readImageFile, type Result } from '../../actions';
 import { fitWithin, MAX_SIDE, runAutomate } from './aiImage';
 import { err, ok } from '../../../shared/errors';
@@ -13,12 +14,45 @@ import './paint.css';
 
 type Tool = 'pencil' | 'brush' | 'eraser' | 'line' | 'rect' | 'ellipse';
 
+// Win98 pixel-art SVG icons for shape tools that have no equivalent in react-old-icons
+const RectIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+    <rect x="2"  y="3"  width="16" height="2" fill="#000"/>
+    <rect x="2"  y="15" width="16" height="2" fill="#000"/>
+    <rect x="2"  y="3"  width="2"  height="14" fill="#000"/>
+    <rect x="16" y="3"  width="2"  height="14" fill="#000"/>
+  </svg>
+);
+
+const EllipseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+    <rect x="6"  y="2"  width="8" height="2" fill="#000"/>
+    <rect x="4"  y="4"  width="2" height="2" fill="#000"/>
+    <rect x="14" y="4"  width="2" height="2" fill="#000"/>
+    <rect x="2"  y="6"  width="2" height="8" fill="#000"/>
+    <rect x="16" y="6"  width="2" height="8" fill="#000"/>
+    <rect x="4"  y="14" width="2" height="2" fill="#000"/>
+    <rect x="14" y="14" width="2" height="2" fill="#000"/>
+    <rect x="6"  y="16" width="8" height="2" fill="#000"/>
+  </svg>
+);
+
+// Map each tool to its Win98 MS Paint icon from react-old-icons (or inline SVG for shape tools)
+const TOOL_ICONS: Record<Tool, React.ReactNode> = {
+  pencil:  <PaintPencil      size={22} />,
+  brush:   <PaintBrush       size={22} />,
+  eraser:  <PaintErasercolor size={22} />,
+  line:    <PaintCurve       size={22} />,
+  rect:    <RectIcon />,
+  ellipse: <EllipseIcon />,
+};
+
 const TOOLS: Array<{ id: Tool; label: string }> = [
-  { id: 'pencil', label: 'Pencil' },
-  { id: 'brush', label: 'Brush' },
-  { id: 'eraser', label: 'Eraser' },
-  { id: 'line', label: 'Line' },
-  { id: 'rect', label: 'Rectangle' },
+  { id: 'pencil',  label: 'Pencil' },
+  { id: 'brush',   label: 'Brush' },
+  { id: 'eraser',  label: 'Eraser' },
+  { id: 'line',    label: 'Line' },
+  { id: 'rect',    label: 'Rectangle' },
   { id: 'ellipse', label: 'Ellipse' },
 ];
 
@@ -377,11 +411,21 @@ export function Paint({ windowId, launchArgs }: AppProps) {
       </div>
       <div className="paint-main">
         <div className="paint-tools" role="toolbar" aria-label="Tools">
-          {TOOLS.map((t) => (
-            <button key={t.id} type="button" aria-pressed={tool === t.id} className={tool === t.id ? 'active' : ''} onClick={() => setTool(t.id)}>
-              {t.label}
-            </button>
-          ))}
+          <div className="paint-tool-grid">
+            {TOOLS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                title={t.label}
+                aria-label={t.label}
+                aria-pressed={tool === t.id}
+                className={`paint-tool-btn${tool === t.id ? ' active' : ''}`}
+                onClick={() => setTool(t.id)}
+              >
+                {TOOL_ICONS[t.id]}
+              </button>
+            ))}
+          </div>
           <label className="paint-size">
             Size
             <select value={size} onChange={(e) => setSize(Number(e.target.value))} aria-label="Brush size">

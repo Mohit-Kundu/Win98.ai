@@ -1,8 +1,10 @@
 .paint { display: flex; flex-direction: column; height: 100%; min-height: 0; background: #c0c0c0; }
 .paint-toolbar { display: flex; gap: 4px; padding: 3px; }
 .paint-main { display: flex; flex: 1; min-height: 0; }
-.paint-tools { display: flex; flex-direction: column; gap: 3px; padding: 3px; width: 92px; }
-.paint-tools button.active { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; }
+.paint-tools { display: flex; flex-direction: column; padding: 3px; width: 54px; border: 1px solid #808080; border-top-color: #fff; border-left-color: #fff; background: #c0c0c0; }
+.paint-tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+.paint-tool-btn { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; min-width: 24px; min-height: 24px; padding: 0; box-sizing: border-box; cursor: default; image-rendering: pixelated; }
+.paint-tool-btn.active { box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; }
 .paint-size { display: flex; flex-direction: column; font-size: 11px; margin-top: 6px; }
 .paint-surface { flex: 1; overflow: auto; background: #808080; padding: 2px; min-width: 0; }
 .paint-palette { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; max-width: 200px; }
