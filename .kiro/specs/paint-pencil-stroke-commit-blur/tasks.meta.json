@@ -1,0 +1,128 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "Concrete test: expected el.width=1280 (CSS 640 × DPR 2), received el.width=640 — confirms 1× backing store.\nPBT counterexample (after 12 shrinks): [cssWidth=100, cssHeight=100, strokePoints=[{x:10,y:10},{x:10,y:10},{x:10,y:10}]] — el.width=100 instead of 200 (100×2).\nBoth confirm that enableRetinaScaling:false keeps the backing store at CSS pixel size, causing the blur-on-commit bug.",
+      "lastRunTimestamp": 1795302826049
+    },
+    "2. Write preservation property tests (BEFORE implementing fix)": {
+      "status": "passed",
+      "lastRunTimestamp": 1795302925417
+    },
+    "3.2 Verify bug condition exploration test now passes": {
+      "status": "passed",
+      "lastRunTimestamp": 1795303024502
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795301947954
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795301952460
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795302834974
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795301947989
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795302837478
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795302932870
+      }
+    ],
+    "3.1 Implement the fix": [
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795301948018
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795302934909
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795302948347
+      }
+    ],
+    "3.2 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795301948036
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795302950439
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795303052551
+      }
+    ],
+    "3.3 Verify preservation tests still pass": [
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795301948053
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795302952275
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795303054918
+      }
+    ],
+    "4. Checkpoint — Ensure all tests pass": [
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795301948078
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795303057188
+      },
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795303414322
+      }
+    ],
+    "3. Fix pencil stroke commit blur on HiDPI displays": [
+      {
+        "executionId": "1b9e2618-bcc9-40b0-9c64-3383cb70d378",
+        "chatSessionId": "sess_71cb867b-5d96-493f-8b5e-362974a8a1be",
+        "timestamp": 1795303054954
+      }
+    ]
+  }
+}

@@ -220,7 +220,7 @@ export function Paint({ windowId, launchArgs }: AppProps) {
       backgroundColor: '#ffffff',
       selection: false,
       skipTargetFind: true,
-      enableRetinaScaling: false,
+      enableRetinaScaling: true,
       preserveObjectStacking: true,
     });
     canvasRef.current = c;
