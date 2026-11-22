@@ -4,7 +4,7 @@ A Windows 98 style desktop that runs in the browser, with an AI assistant (Clipp
 
 ## What it is
 
-- A retro desktop built with React and 98.css: draggable and resizable windows, taskbar, Start menu and desktop icons.
+- A retro desktop built with React and 98.css: draggable and resizable windows, taskbar, Start menu and desktop icons (drag to rearrange).
 - Four apps (File Explorer, Paint, WordPad, CMD) plus a PDF preview, all reading and writing the same virtual drive (`C:\`).
 - Clippy, a chat assistant that calls real tools to create folders, write documents, generate images, search, organize and delete files. Destructive actions ask for confirmation first.
 - Everything is stored locally in the browser. The only network traffic is from the proxy server to Gemini.
