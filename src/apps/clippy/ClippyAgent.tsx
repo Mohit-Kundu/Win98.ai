@@ -49,8 +49,17 @@ const MARGIN = 8;
 const AGENT_Z = '99992';
 
 // Assets are served from public/clippy/ (see scripts/copy-clippy-assets.mjs). No CDN, no TTS.
+/** Idle animations that are never played. clippyjs picks randomly from every animation named Idle*. */
+const DISABLED_ANIMATIONS = ['IdleAtom'];
+
+async function loadAgentData() {
+  const data = await (await fetch(`${BASE}agent.json`)).json();
+  if (data?.animations) for (const name of DISABLED_ANIMATIONS) delete data.animations[name];
+  return data;
+}
+
 const loaders = {
-  agent: async () => ({ default: await (await fetch(`${BASE}agent.json`)).json() }),
+  agent: async () => ({ default: await loadAgentData() }),
   map: async () => ({ default: `${BASE}map.png` }),
   // Agent sound effects are animation cues only, not speech.
   sound: async () => ({ default: await (await fetch(`${BASE}sounds.json`)).json() }),

@@ -50,7 +50,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 
 ### Clippy assistant
 - Animated Clippy with a chat window, bundled locally (no CDN).
-- While idle, Clippy plays a random idle animation every 6 to 12 seconds.
+- While idle, Clippy plays a random idle animation every 6 to 12 seconds. The atom animation (`IdleAtom`) is disabled.
 - Clippy plays Alert when a step fails or is declined, and Congratulate when a run finishes with at least one successful step and no failures.
 - Clippy plays a tool-specific animation while a tool runs: Writing for document tools, GetArtsy for drawing and image tools, Searching for `search_files`, and EmptyTrash for `delete_node`. A successful step plays Save for tools that change stored data and Congratulate otherwise. The mapping is in `src/apps/clippy/toolAnimations.ts`.
 - Gets minimal context about the focused app, folder and selection.
