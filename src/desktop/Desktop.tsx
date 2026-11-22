@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { APP_PROTECTED_MESSAGE, useTrash } from '../actions/vfsHooks';
 import { AiConfirmHost } from '../ai/confirm';
 import { Clippy } from '../apps/clippy/Clippy';
 import { useWindowStore } from '../store/windows';
+import { MessageBox } from '../ui/dialogs';
 import { ErrorBoundary } from '../ui/ErrorBoundary';
-import { listApps } from './appRegistry';
+import { listApps, type AppDefinition } from './appRegistry';
 import { Icon } from './icons';
 import { launchApp } from './launch';
 import { Taskbar } from './Taskbar';
@@ -88,9 +91,44 @@ function nearestFreeCell(target: Cell, taken: Set<string>): Cell {
   return best;
 }
 
+/** The Recycle Bin icon shows whether the bin holds anything. */
+function RecycleBinIcon() {
+  const count = useTrash().length;
+  return <Icon name={count > 0 ? 'recycleBinFull' : 'recycleBinEmpty'} />;
+}
+
+function AppIcon({ app }: { app: AppDefinition }) {
+  return app.id === 'recycleBin' ? <RecycleBinIcon /> : <Icon name={app.icon} />;
+}
+
+/** Right-click menu for a desktop icon. */
+function IconMenu({ x, y, onOpen, onDelete, onClose }: { x: number; y: number; onOpen: () => void; onDelete: () => void; onClose: () => void }) {
+  useEffect(() => {
+    window.addEventListener('mousedown', onClose);
+    return () => window.removeEventListener('mousedown', onClose);
+  }, [onClose]);
+  return createPortal(
+    <ul className="desktop-menu" role="menu" style={{ left: x, top: y }} onMouseDown={(e) => e.stopPropagation()}>
+      <li role="none">
+        <button type="button" role="menuitem" onClick={onOpen}>
+          Open
+        </button>
+      </li>
+      <li role="none">
+        <button type="button" role="menuitem" onClick={onDelete}>
+          Delete
+        </button>
+      </li>
+    </ul>,
+    document.body,
+  );
+}
+
 export function Desktop() {
   const order = useWindowStore((s) => s.order);
   const [selected, setSelected] = useState<string | null>(null);
+  const [menu, setMenu] = useState<{ x: number; y: number; appId: string } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const icons = listApps().filter((a) => a.desktopIcon !== false);
   const [saved, setSaved] = useState<Cells>(loadCells);
   const [, setResizeTick] = useState(0);
@@ -166,11 +204,19 @@ export function Desktop() {
                 setDrag(null);
               }}
               onDoubleClick={() => launchApp(app.id)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSelected(app.id);
+                setMenu({ x: e.clientX, y: e.clientY, appId: app.id });
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') launchApp(app.id);
+                // Every desktop icon is an application, and applications cannot be deleted.
+                else if (e.key === 'Delete') setNotice(APP_PROTECTED_MESSAGE);
               }}
             >
-              <Icon name={app.icon} />
+              <AppIcon app={app} />
               <span>{app.title}</span>
             </button>
             );
@@ -183,6 +229,22 @@ export function Desktop() {
       <Taskbar />
       <Clippy />
       <AiConfirmHost />
+      {menu && (
+        <IconMenu
+          x={menu.x}
+          y={menu.y}
+          onOpen={() => {
+            launchApp(menu.appId);
+            setMenu(null);
+          }}
+          onDelete={() => {
+            setMenu(null);
+            setNotice(APP_PROTECTED_MESSAGE);
+          }}
+          onClose={() => setMenu(null)}
+        />
+      )}
+      {notice && <MessageBox title="Desktop" message={notice} onClose={() => setNotice(null)} />}
     </div>
   );
 }

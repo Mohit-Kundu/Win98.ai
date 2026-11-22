@@ -28,10 +28,10 @@ const mustOk = <T>(r: { ok: true; value: T } | { ok: false; error: unknown }): T
 describe('VFS service', () => {
   it('creates default folders once', async () => {
     const names = (await svc.list(ROOT_ID)).map((n) => n.name);
-    expect(names).toEqual(['Desktop', 'My Documents', 'My Pictures']);
+    expect(names).toEqual(['Desktop', 'My Documents', 'My Pictures', 'Program Files', 'Recycle Bin']);
     const again = createVfsService(db, new VfsEmitter());
     await again.init();
-    expect((await again.list(ROOT_ID)).length).toBe(3);
+    expect((await again.list(ROOT_ID)).length).toBe(5);
     expect(mustOk(await svc.resolve('C:\\My Documents')).kind).toBe('folder');
   });
 
@@ -119,6 +119,6 @@ describe('VFS service', () => {
     const db2 = new VfsDb(db.name);
     const svc2 = createVfsService(db2, new VfsEmitter());
     expect(text(mustOk(await svc2.read(f.id)).bytes)).toBe('keep');
-    expect((await svc2.list(ROOT_ID)).length).toBe(3);
+    expect((await svc2.list(ROOT_ID)).length).toBe(5);
   });
 });

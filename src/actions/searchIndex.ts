@@ -158,14 +158,15 @@ export function createSearchIndex(deps: { vfs?: VfsService } = {}): SearchIndex 
   /** Re-index one node from the VFS. `reload` re-reads the body text. */
   const refresh = async (id: string, reload: boolean): Promise<void> => {
     const node = await vfs.get(id);
-    if (!node || node.id === ROOT_ID) return drop(id);
+    // System folders, app shortcuts and anything in the Recycle Bin are not searchable.
+    if (!node || node.id === ROOT_ID || node.system || (await vfs.isInBin(id))) return drop(id);
     if (reload || !bodies.has(id)) bodies.set(id, await readBody(node));
     put(toDoc(node, bodies.get(id) ?? ''));
   };
 
   /** A deleted folder takes its descendants with it, and the event names only the folder. */
   const prune = async (): Promise<void> => {
-    for (const id of [...docs.keys()]) if (!(await vfs.get(id))) drop(id);
+    for (const id of [...docs.keys()]) if (!(await vfs.get(id)) || (await vfs.isInBin(id))) drop(id);
   };
 
   const build = async (): Promise<void> => {
@@ -173,6 +174,7 @@ export function createSearchIndex(deps: { vfs?: VfsService } = {}): SearchIndex 
     const seen = new Set<string>();
     while (stack.length > 0) {
       for (const n of await vfs.list(stack.pop()!)) {
+        if (n.system) continue;
         seen.add(n.id);
         if (n.kind === 'folder') stack.push(n.id);
         bodies.set(n.id, await readBody(n));
@@ -180,6 +182,19 @@ export function createSearchIndex(deps: { vfs?: VfsService } = {}): SearchIndex 
       }
     }
     for (const id of [...docs.keys()]) if (!seen.has(id)) drop(id);
+  };
+
+  /** Index every descendant of a folder. */
+  const addSubtree = async (folderId: string): Promise<void> => {
+    const stack = [folderId];
+    while (stack.length > 0) {
+      for (const n of await vfs.list(stack.pop()!)) {
+        if (n.system) continue;
+        if (n.kind === 'folder') stack.push(n.id);
+        bodies.set(n.id, await readBody(n));
+        put(toDoc(n, bodies.get(n.id) ?? ''));
+      }
+    }
   };
 
   const enqueue = (task: () => Promise<void>): void => {
@@ -193,7 +208,11 @@ export function createSearchIndex(deps: { vfs?: VfsService } = {}): SearchIndex 
       if (wasFolder) enqueue(prune);
       return;
     }
-    enqueue(() => refresh(e.nodeId, e.type === 'created' || e.type === 'updated'));
+    enqueue(async () => {
+      await refresh(e.nodeId, e.type === 'created' || e.type === 'updated');
+      // A restored folder brings its descendants back into the index.
+      if (e.type === 'created' && docs.get(e.nodeId)?.kind === 'folder') await addSubtree(e.nodeId);
+    });
   };
 
   const start = (): void => {

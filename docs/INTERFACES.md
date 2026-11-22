@@ -40,7 +40,18 @@ saveFile({ fileId?, path?, cwd?, bytes, mime, overwrite? }): Result<{ fileId, pa
 listFolder({ folderId?, path?, cwd? }): Result<{ folder: NodeInfo, items: NodeRecord[] }>
 createFolder({ path, cwd? } | { parentId, name }): Result<NodeInfo>
 readMetadata({ nodeId?, path?, cwd? }): Result<NodeInfo & { meta }>
-deleteNode({ nodeId?, path?, cwd? }): Result<{ removedIds, path }>       // no confirmation here; callers confirm
+deleteNode({ nodeId?, path?, cwd? }): Result<{ removedIds, path, permanent? }>
+                                                                          // no confirmation here; callers confirm
+                                                                          // moves to C:\Recycle Bin (permanent: false)
+                                                                          // target already in the bin -> permanent delete (permanent: true)
+                                                                          // application shortcut -> PROTECTED_APP "System Applications cannot be deleted"
+                                                                          // system folder -> PROTECTED
+listRecycleBin(): Result<TrashEntry[]>                                    // { node, originalName, originalFolder?, deletedAt }, newest first
+restoreNode({ nodeId?, path?, cwd? }): Result<{ node, path, relocated, renamed }>
+                                                                          // original folder gone -> C:\Desktop (relocated)
+                                                                          // name taken -> "name (restored).ext" (renamed)
+purgeNode({ nodeId?, path?, cwd? }): Result<{ removedIds, name }>         // permanent; top-level bin items only
+emptyRecycleBin(): Result<{ removedIds }>                                 // permanent
 renameNode({ nodeId?, path?, cwd?, name }): Result<NodeInfo>
 moveNode({ nodeId?, path?, cwd?, destinationId?, destinationPath?, newName? }): Result<NodeInfo>
 // NodeInfo = { node: NodeRecord, path: string }

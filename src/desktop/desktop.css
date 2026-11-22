@@ -204,3 +204,29 @@ body,
   padding: 8px;
   color: grey;
 }
+
+.desktop-menu {
+  position: fixed;
+  z-index: 100001;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+  background: silver;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+
+.desktop-menu button {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 3px 20px;
+  cursor: default;
+}
+
+.desktop-menu button:hover {
+  background: #000080;
+  color: #fff;
+}

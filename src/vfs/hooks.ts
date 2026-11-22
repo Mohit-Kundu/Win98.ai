@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { NodeRecord } from './db';
-import { vfs, type VfsService } from './service';
+import { vfs, type TrashEntry, type VfsService } from './service';
 
 /** Re-run `load` on mount, when `key` changes, and after any VFS event. */
 function useLive<T>(load: () => Promise<T>, key: string | null, initial: T): T {
@@ -28,6 +28,11 @@ function useLive<T>(load: () => Promise<T>, key: string | null, initial: T): T {
 /** Children of a folder, kept current as the VFS changes. */
 export function useFolder(folderId: string | null, service: VfsService = vfs): NodeRecord[] {
   return useLive(() => service.list(folderId as string), folderId, []);
+}
+
+/** Items in the Recycle Bin (newest deletion first), kept current as the VFS changes. */
+export function useTrash(service: VfsService = vfs): TrashEntry[] {
+  return useLive(() => service.listTrash(), 'trash', []);
 }
 
 /** A single node (undefined while loading or if missing), kept current as the VFS changes. */

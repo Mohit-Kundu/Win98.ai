@@ -21,6 +21,16 @@ async function guard<T>(body: () => Promise<Result<T>>): Promise<Result<T>> {
   }
 }
 
+/** Reads the app id from an application shortcut (`{"appId":"paint"}`). */
+function shortcutTarget(bytes: ArrayBuffer): string | undefined {
+  try {
+    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as { appId?: unknown };
+    return typeof parsed.appId === 'string' && parsed.appId !== '' ? parsed.appId : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function createCoreActions({ vfs, launch }: CoreDeps): CoreActions {
   const resolveTarget = async (
     t: { id?: string; path?: string; cwd?: string },
@@ -69,6 +79,16 @@ export function createCoreActions({ vfs, launch }: CoreDeps): CoreActions {
         const target = await resolveTarget({ id: i?.fileId, path: i?.path, cwd: i?.cwd }, 'file');
         if (!target.ok) return target;
         const node = target.value;
+        if (node.system === 'shortcut') {
+          const read = await vfs.read(node.id);
+          if (!read.ok) return read;
+          const targetApp = shortcutTarget(read.value.bytes);
+          if (!targetApp) return err('UNSUPPORTED_TYPE', `The shortcut "${node.name}" is damaged.`);
+          const windowId = launch(targetApp);
+          return windowId
+            ? ok({ windowId, appId: targetApp })
+            : err('NOT_FOUND', `The application "${targetApp}" is not available.`, { appId: targetApp });
+        }
         let appId: string;
         let launchArgs: unknown;
         if (node.kind === 'folder') {
@@ -156,9 +176,35 @@ export function createCoreActions({ vfs, launch }: CoreDeps): CoreActions {
         const t = await resolveTarget({ id: i?.nodeId, path: i?.path, cwd: i?.cwd });
         if (!t.ok) return t;
         const path = await vfs.pathOf(t.value.id);
-        const r = await vfs.remove(t.value.id);
-        return r.ok ? ok({ removedIds: r.value.removedIds, path }) : r;
+        // Already in the Recycle Bin: this is the "delete permanently" path.
+        if (await vfs.isInBin(t.value.id)) {
+          const purged = await vfs.purge(t.value.id);
+          if (!purged.ok) return purged;
+          return ok({ removedIds: purged.value.removedIds, path, permanent: true as boolean });
+        }
+        const r = await vfs.trash(t.value.id);
+        if (!r.ok) return r;
+        return ok({ removedIds: r.value.affectedIds, path: r.value.path, permanent: false as boolean });
       }),
+
+    listRecycleBin: () =>
+      guard(async () => ok(await vfs.listTrash())),
+
+    restoreNode: (i) =>
+      guard(async () => {
+        const t = await resolveTarget({ id: i?.nodeId, path: i?.path, cwd: i?.cwd });
+        if (!t.ok) return t;
+        return vfs.restore(t.value.id);
+      }),
+
+    purgeNode: (i) =>
+      guard(async () => {
+        const t = await resolveTarget({ id: i?.nodeId, path: i?.path, cwd: i?.cwd });
+        if (!t.ok) return t;
+        return vfs.purge(t.value.id);
+      }),
+
+    emptyRecycleBin: () => guard(() => vfs.emptyBin()),
 
     renameNode: (i) =>
       guard(async () => {

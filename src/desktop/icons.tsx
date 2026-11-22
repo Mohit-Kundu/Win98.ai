@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 
 /** Small local retro icon set (inline SVG, no dependency). */
-export type IconName = 'folder' | 'paint' | 'document' | 'terminal' | 'assistant' | 'app';
+export type IconName = 'folder' | 'paint' | 'document' | 'terminal' | 'assistant' | 'app' | 'recycleBinEmpty' | 'recycleBinFull';
 
 const shapes: Record<IconName, ReactElement> = {
   folder: (
@@ -40,6 +40,24 @@ const shapes: Record<IconName, ReactElement> = {
     <>
       <rect x="3" y="5" width="26" height="22" fill="#c0c0c0" stroke="#000" />
       <rect x="3" y="5" width="26" height="5" fill="#000080" stroke="#000" />
+    </>
+  ),
+  recycleBinEmpty: (
+    <>
+      <path d="M8 10h16l-2 18H10z" fill="#c0c0c0" stroke="#000" />
+      <rect x="6" y="7" width="20" height="3" fill="#808080" stroke="#000" />
+      <path d="M13 6h6v1h-6z" fill="#808080" stroke="#000" />
+      <path d="M12 13l1 12M16 13v12M20 13l-1 12" stroke="#404040" />
+    </>
+  ),
+  recycleBinFull: (
+    <>
+      <path d="M9 4l5 4M17 3l-2 5M22 5l-5 3" stroke="#000" fill="none" />
+      <rect x="10" y="3" width="6" height="6" fill="#fff" stroke="#000" />
+      <rect x="17" y="5" width="6" height="5" fill="#ffd84d" stroke="#000" />
+      <path d="M8 10h16l-2 18H10z" fill="#c0c0c0" stroke="#000" />
+      <rect x="6" y="9" width="20" height="3" fill="#808080" stroke="#000" />
+      <path d="M12 15l1 10M16 15v10M20 15l-1 10" stroke="#404040" />
     </>
   ),
 };

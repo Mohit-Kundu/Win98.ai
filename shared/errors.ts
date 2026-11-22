@@ -9,6 +9,8 @@ export type ErrorCode =
   | 'TOO_LARGE'
   | 'CONFLICT_OVERWRITE'
   | 'WRITE_FAILED'
+  | 'PROTECTED'
+  | 'PROTECTED_APP'
   | 'VALIDATION'
   | 'AI_UNAVAILABLE'
   | 'AI_TIMEOUT'

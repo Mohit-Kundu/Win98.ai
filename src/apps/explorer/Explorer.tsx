@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useContextProvider } from '../../ai/context';
 import {
   actions,
@@ -55,7 +55,9 @@ export function Explorer({ windowId, launchArgs }: AppProps) {
   const [organizing, setOrganizing] = useState(false);
   const searchSeq = useRef(0);
 
-  const items = useFolder(folderId);
+  const allItems = useFolder(folderId);
+  // The Recycle Bin folder opens only from its own window.
+  const items = useMemo(() => allItems.filter((n) => n.system !== 'recycleBin'), [allItems]);
   useContextProvider('explorer', windowId, () =>
     folderId === null ? undefined : { app: 'explorer', folderId, folderPath, selectedIds: selectedId ? [selectedId] : [] },
   );
@@ -75,7 +77,8 @@ export function Explorer({ windowId, launchArgs }: AppProps) {
     let cancelled = false;
     void actions.listFolder({ folderId }).then((r) => {
       if (cancelled) return;
-      if (r.ok) setFolderPath(r.value.folder.path);
+      // A folder that was deleted now lives in the Recycle Bin, so leave it like a missing folder.
+      if (r.ok && !/^C:\\Recycle Bin(\\|$)/i.test(r.value.folder.path)) setFolderPath(r.value.folder.path);
       else setFolderId(rootId);
     });
     return () => {
@@ -273,7 +276,7 @@ export function Explorer({ windowId, launchArgs }: AppProps) {
       {modal?.kind === 'delete' && (
         <ConfirmDialog
           title="Confirm Delete"
-          message={`Are you sure you want to delete "${modal.node.name}"${modal.node.kind === 'folder' ? ' and everything in it' : ''}?`}
+          message={`Are you sure you want to move "${modal.node.name}"${modal.node.kind === 'folder' ? ' and everything in it' : ''} to the Recycle Bin?`}
           onConfirm={() => void remove(modal.node)}
           onCancel={() => setModal(null)}
         />

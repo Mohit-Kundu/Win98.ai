@@ -7,13 +7,16 @@ import { registerWordPad } from './apps/wordpad';
 import { registerPaint } from './apps/paint';
 import { registerCmd } from './apps/cmd/register';
 import { registerPdfPreview } from './apps/pdfPreview';
-import { metadataService, searchIndex } from './actions';
+import { registerRecycleBin } from './apps/recycleBin';
+import { metadataService, searchIndex, syncAppShortcuts } from './actions';
 
 registerExplorer();
 registerWordPad();
 registerPaint();
 registerCmd();
 registerPdfPreview();
+registerRecycleBin();
+void syncAppShortcuts();
 metadataService.start();
 searchIndex.start();
 

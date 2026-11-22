@@ -26,7 +26,20 @@ export interface NodeRecord {
   createdAt: number;
   modifiedAt: number;
   contentHash?: string;
+  /** Marks nodes the user cannot rename, move or delete. */
+  system?: SystemKind;
   meta: NodeMeta;
+}
+
+/** `programFiles` and `recycleBin` are the system folders. `shortcut` is an application shortcut. */
+export type SystemKind = 'programFiles' | 'recycleBin' | 'shortcut';
+
+/** One row per item moved to the Recycle Bin. Only the top deleted node has a row. */
+export interface TrashRecord {
+  nodeId: string;
+  originalParentId: string;
+  originalName: string;
+  deletedAt: number;
 }
 
 export interface ContentRecord {
@@ -44,6 +57,7 @@ export class VfsDb extends Dexie {
   nodes!: Table<NodeRecord, string>;
   contents!: Table<ContentRecord, string>;
   settings!: Table<SettingRecord, string>;
+  trash!: Table<TrashRecord, string>;
 
   constructor(name = 'win98-ai-vfs') {
     super(name);
@@ -51,6 +65,10 @@ export class VfsDb extends Dexie {
       nodes: 'id, parentId, [parentId+name], ext, modifiedAt',
       contents: 'nodeId',
       settings: 'key',
+    });
+    // v2 adds the Recycle Bin metadata table. Existing tables are unchanged.
+    this.version(2).stores({
+      trash: 'nodeId, deletedAt',
     });
   }
 }

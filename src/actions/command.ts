@@ -27,6 +27,9 @@ const HELP_LINES = [
   '  DIR [path]     List the contents of a folder.',
   '  CD [path]      Show or change the current folder. CD .. goes up one level.',
   '  MKDIR path     Create a folder.',
+  '  DEL path       Move a file to the Recycle Bin.',
+  '  RD path        Move a folder (and everything in it) to the Recycle Bin.',
+  '  RESTORE name   Restore an item from the Recycle Bin. RESTORE alone lists the Recycle Bin.',
   '  CLS            Clear the screen.',
   '  HELP           Show this list.',
   '  NL ON | NL OFF Turn natural-language mode on or off.',
@@ -55,7 +58,10 @@ function describeFailure(code: string, message: string, path: string): string {
 }
 
 /** Build executeCommand on top of the core actions. Reads the VFS fresh on every call. */
-export function createExecuteCommand(core: Pick<CoreActions, 'listFolder' | 'createFolder'>): ExecuteCommand {
+export function createExecuteCommand(
+  core: Pick<CoreActions, 'listFolder' | 'createFolder'> &
+    Partial<Pick<CoreActions, 'deleteNode' | 'readMetadata' | 'listRecycleBin' | 'restoreNode'>>,
+): ExecuteCommand {
   const done = (cwd: string, output: string[], extra: Partial<ExecuteCommandOutput> = {}): Result<ExecuteCommandOutput> => ({
     ok: true,
     value: { output, cwd, ...extra },
@@ -101,6 +107,40 @@ export function createExecuteCommand(core: Pick<CoreActions, 'listFolder' | 'cre
           const r = await core.createFolder({ path, cwd });
           if (!r.ok) return done(cwd, [describeFailure(r.error.code, r.error.message, path)]);
           return done(cwd, []);
+        }
+        case 'del':
+        case 'rd': {
+          const usage = cmd.name === 'del' ? 'del <path>' : 'rd <path>';
+          if (path === '') return done(cwd, [`The syntax of the command is incorrect. Usage: ${usage}`]);
+          if (!core.deleteNode || !core.readMetadata) return done(cwd, ['Deleting is not available.']);
+          const meta = await core.readMetadata({ path, cwd });
+          if (!meta.ok) return done(cwd, [describeFailure(meta.error.code, meta.error.message, path)]);
+          const isFolder = meta.value.node.kind === 'folder';
+          if (cmd.name === 'del' && isFolder) return done(cwd, [`${path} is a folder. Use RD to remove it.`]);
+          if (cmd.name === 'rd' && !isFolder) return done(cwd, [`The directory name is invalid: ${path}`]);
+          const r = await core.deleteNode({ path, cwd });
+          return done(cwd, r.ok ? [] : [r.error.message]);
+        }
+        case 'restore': {
+          if (!core.listRecycleBin || !core.restoreNode) return done(cwd, ['The Recycle Bin is not available.']);
+          const bin = await core.listRecycleBin();
+          if (!bin.ok) return done(cwd, [bin.error.message]);
+          if (path === '') {
+            if (bin.value.length === 0) return done(cwd, ['The Recycle Bin is empty.']);
+            return done(cwd, [
+              ' Recycle Bin',
+              '',
+              ...bin.value.map((e) => `${formatStamp(e.deletedAt)}  ${e.originalName}${e.originalFolder ? `  (from ${e.originalFolder})` : ''}`),
+              '',
+              'Usage: restore <name>',
+            ]);
+          }
+          const want = path.toLowerCase();
+          const entry = bin.value.find((e) => e.originalName.toLowerCase() === want);
+          if (!entry) return done(cwd, [`The Recycle Bin has no item named ${path}.`]);
+          const r = await core.restoreNode({ nodeId: entry.node.id });
+          if (!r.ok) return done(cwd, [r.error.message]);
+          return done(cwd, [`Restored to ${r.value.path}`]);
         }
         case 'dir': {
           const r = await core.listFolder({ path: path === '' ? cwd : path, cwd });

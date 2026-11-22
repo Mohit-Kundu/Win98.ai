@@ -14,7 +14,7 @@ Tools are registered in `src/ai/registry.ts` and defined in `src/ai/tools/`. Eac
 | `generate_image` | generateImage (`/api/generate-image` then createDrawing) | when `overwrite: true` | 7.9 |
 | `create_drawing` | createDrawing | no | 7.9 |
 | `update_drawing` | updateDrawing | yes (scope: paint) | 7.9 |
-| `delete_node` | deleteNode | yes | 7.9 |
+| `delete_node` | deleteNode (moves to the Recycle Bin; permanent only for items already in it; refuses application shortcuts with `PROTECTED_APP`) | yes | 7.9 |
 | `rename_node` | renameNode | no | 7.9 |
 | `move_node` | moveNode | no | 7.9 |
 | `open_file` | openFile | no | 7.9 |

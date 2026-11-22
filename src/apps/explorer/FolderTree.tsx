@@ -9,7 +9,7 @@ function TreeNode({ id, name, selectedId, onSelect, defaultOpen }: {
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen === true);
-  const children = useFolder(open ? id : null).filter((n) => n.kind === 'folder');
+  const children = useFolder(open ? id : null).filter((n) => n.kind === 'folder' && n.system !== 'recycleBin');
   return (
     <li role="treeitem" aria-expanded={open} aria-selected={selectedId === id}>
       <button type="button" className="explorer-tree-toggle" aria-label={`${open ? 'Collapse' : 'Expand'} ${name}`} onClick={() => setOpen(!open)}>

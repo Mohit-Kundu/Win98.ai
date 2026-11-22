@@ -1,6 +1,6 @@
 import { tokenize } from './tokenize';
 
-export const BUILTIN_COMMANDS = ['dir', 'cd', 'mkdir', 'cls', 'help'] as const;
+export const BUILTIN_COMMANDS = ['dir', 'cd', 'mkdir', 'del', 'rd', 'restore', 'cls', 'help'] as const;
 export type BuiltinName = (typeof BUILTIN_COMMANDS)[number];
 
 export type ParsedCommand =

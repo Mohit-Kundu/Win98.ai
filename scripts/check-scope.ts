@@ -63,8 +63,8 @@ const EXCLUDED_DEPENDENCIES = [
   /^(v86|xterm-pty|node-pty)$/,
 ];
 
-/** Requirement 16.3: the CMD ships exactly these built-in commands. */
-const ALLOWED_CMD_BUILTINS = ['dir', 'cd', 'mkdir', 'cls', 'help'];
+/** Requirement 16.3: the CMD ships exactly these built-in commands. del, rd and restore belong to the Recycle Bin. */
+const ALLOWED_CMD_BUILTINS = ['dir', 'cd', 'mkdir', 'del', 'rd', 'restore', 'cls', 'help'];
 
 function walk(dir: string, out: string[] = []): string[] {
   if (!existsSync(dir)) return out;

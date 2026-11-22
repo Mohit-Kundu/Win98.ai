@@ -9,6 +9,7 @@ const TYPE_LABELS: Record<string, string> = {
   txt: 'Text Document',
   md: 'Markdown Document',
   pdf: 'PDF Document',
+  lnk: 'Application Shortcut',
 };
 
 export function typeLabel(node: Pick<NodeRecord, 'kind' | 'ext'>): string {
@@ -20,6 +21,7 @@ export function typeLabel(node: Pick<NodeRecord, 'kind' | 'ext'>): string {
 export function iconFor(node: Pick<NodeRecord, 'kind' | 'ext'>): IconName {
   if (node.kind === 'folder') return 'folder';
   if (node.ext === 'png' || node.ext === 'jpg' || node.ext === 'jpeg') return 'paint';
+  if (node.ext === 'lnk') return 'app';
   return 'document';
 }
 

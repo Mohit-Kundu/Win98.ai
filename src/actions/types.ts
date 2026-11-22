@@ -1,7 +1,8 @@
 import type { AppError, ErrorCode, Result } from '../../shared/errors';
 import type { NodeMeta, NodeRecord } from '../vfs/db';
+import type { TrashEntry } from '../vfs/service';
 
-export type { AppError, ErrorCode, Result, NodeMeta, NodeRecord };
+export type { AppError, ErrorCode, Result, NodeMeta, NodeRecord, TrashEntry };
 
 /** Identify a VFS node by stable id or by path (paths may be relative to `cwd`). `id` wins when both are given. */
 export interface NodeTarget {
@@ -72,7 +73,19 @@ export interface CoreActions {
   listFolder(i: ListFolderInput): Promise<Result<{ folder: NodeInfo; items: NodeRecord[] }>>;
   createFolder(i: CreateFolderInput): Promise<Result<NodeInfo>>;
   readMetadata(i: NodeInput): Promise<Result<NodeInfo & { meta: NodeMeta }>>;
-  deleteNode(i: NodeInput): Promise<Result<{ removedIds: string[]; path: string }>>;
+  /**
+   * Moves the item to the Recycle Bin. An item already in the bin is deleted permanently (`permanent: true`).
+   * Application shortcuts are refused with PROTECTED_APP.
+   */
+  deleteNode(i: NodeInput): Promise<Result<{ removedIds: string[]; path: string; permanent?: boolean }>>;
   renameNode(i: RenameNodeInput): Promise<Result<NodeInfo>>;
   moveNode(i: MoveNodeInput): Promise<Result<NodeInfo>>;
+  /** Items in the Recycle Bin, newest first. */
+  listRecycleBin(): Promise<Result<TrashEntry[]>>;
+  /** Moves a Recycle Bin item back to where it came from, or to C:\Desktop when that is not possible. */
+  restoreNode(i: NodeInput): Promise<Result<{ node: NodeRecord; path: string; relocated: boolean; renamed: boolean }>>;
+  /** Permanently deletes one Recycle Bin item. */
+  purgeNode(i: NodeInput): Promise<Result<{ removedIds: string[]; name: string }>>;
+  /** Permanently deletes everything in the Recycle Bin. */
+  emptyRecycleBin(): Promise<Result<{ removedIds: string[] }>>;
 }

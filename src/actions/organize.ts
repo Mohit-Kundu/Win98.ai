@@ -106,7 +106,7 @@ export function createOrganizeService(deps: OrganizeDeps = {}): OrganizeService 
     while (queue.length > 0 && map.size < MAX_FOLDERS_SENT) {
       const cur = queue.shift()!;
       for (const child of await vfs.list(cur.id)) {
-        if (child.kind !== 'folder') continue;
+        if (child.kind !== 'folder' || child.system) continue;
         const segs = [...cur.segs, child.name];
         const path = formatPath(segs);
         map.set(path.toLowerCase(), path);

@@ -6,17 +6,29 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 
 ### Desktop shell
 - Draggable, resizable windows with minimize, maximize and close.
-- Taskbar, Start menu and desktop icons (drag to rearrange; positions are saved).
+- Taskbar, Start menu and desktop icons (drag to rearrange; positions are saved). Right-click an icon for Open and Delete.
+- Applications cannot be deleted. Pressing Delete on a desktop icon, or choosing Delete from its menu, shows "System Applications cannot be deleted".
+- A Recycle Bin icon on the desktop shows whether the bin is empty or full.
 - Opening a file launches the matching app by extension: `png`, `jpg`, `jpeg` open Paint; `wpd`, `txt`, `md` open WordPad; `pdf` opens PDF preview.
 
 ### Virtual file system
 - One shared drive (`C:\`) stored in the browser with IndexedDB (Dexie).
 - All apps read and write it through one action layer, so a file saved in one app shows up in the others.
 - Uploads up to 20 MB.
+- Two system folders: `C:\Program Files` holds one read-only shortcut (`.lnk`) per application, and `C:\Recycle Bin` holds deleted items. System folders and shortcuts cannot be renamed, moved or deleted, and nothing can be created or moved into them.
+- Opening a shortcut launches its application.
+
+### Recycle Bin
+- Deleting a file or folder in Explorer, with CMD `del` or `rd`, or through Clippy's `delete_node` moves it to the Recycle Bin instead of removing it.
+- The Recycle Bin window lists name, original location, date deleted, type and size. Toolbar and right-click: Restore, Delete Permanently (asks first) and Empty Recycle Bin (asks first).
+- Restore puts the item back where it was. If that folder no longer exists, it goes to `C:\Desktop`. If the name is taken, it is restored as `name (restored).ext`. A message says where it went.
+- Only items directly in the bin can be restored or deleted permanently. Deleting an item that is already in the bin removes it for good.
+- Deleted files are not searched, indexed, analyzed by AI or offered by "Organize with AI...". The bin folder itself is hidden in Explorer.
 
 ### File Explorer
 - Folder tree and file list.
-- New folder, rename (F2), move, delete (Delete key, with confirmation), properties, open (Enter or double-click).
+- New folder, rename (F2), move, delete (Delete key, with confirmation; moves to the Recycle Bin), properties, open (Enter or double-click).
+- Shows `C:\Program Files` as read-only. Deleting an application shortcut there shows "System Applications cannot be deleted".
 - Upload files from the host machine, with an overwrite prompt.
 - AI metadata for files (title, description, category), with "Retry analysis".
 - Natural-language search (for example by topic, type or date) over file names and AI metadata, including PDF text.
@@ -39,7 +51,8 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - AI output is sanitized before it enters the document.
 
 ### CMD
-- Built-in commands: `dir`, `cd`, `mkdir`, `cls`, `help`.
+- Built-in commands: `dir`, `cd`, `mkdir`, `del`, `rd`, `restore`, `cls`, `help`.
+- `del <path>` moves a file to the Recycle Bin and `rd <path>` moves a folder. `restore <name>` brings an item back, and `restore` alone lists the bin. Deleting an application shortcut prints "System Applications cannot be deleted".
 - Command history and prompt showing the current path.
 - Natural language: `ai <instruction>` for one request, `nl on` / `nl off` to treat every line as an instruction.
 - Uses the same file system as the other apps.
@@ -56,6 +69,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - Gets minimal context about the focused app, folder and selection.
 - Performs multi-step requests with real tool calls, up to 10 per run.
 - Asks for confirmation before destructive actions and reports partial failures honestly.
+- `delete_node` moves items to the Recycle Bin (items already in the bin are deleted for good) and cannot delete applications.
 - Tools (18): `list_folder`, `create_folder`, `read_file_metadata`, `read_document`, `create_document`, `update_document`, `insert_image_into_document`, `generate_image`, `create_drawing`, `update_drawing`, `delete_node`, `rename_node`, `move_node`, `open_file`, `open_application`, `run_command`, `search_files`, `organize_files`.
 
 ### AI proxy server
@@ -76,7 +90,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - Voice input or output (no speech recognition or text-to-speech).
 - Long-term memory, background execution, multi-agent frameworks, vector databases.
 - CMD scripting, pipes, environment variables, subprocesses, package management.
-- CMD commands beyond `dir`, `cd`, `mkdir`, `cls`, `help` (no `copy`, `del`, `type`, `ren`, `move`).
+- CMD commands beyond `dir`, `cd`, `mkdir`, `del`, `rd`, `restore`, `cls`, `help` (no `copy`, `type`, `ren`, `move`).
 - PDF export, advanced page layout, advanced image editing.
 
 ### Limitations
@@ -85,7 +99,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - PDF preview text is not selectable, and the PDF library adds about 1 MB when first used (TD-4).
 - WordPad AI Rewrite can report "The selection has no text" after a triple-click selection (TD-6).
 - Closing Explorer while Paint is open may not work in some cases (TD-5).
-- Data is local to one browser profile. Clearing site data deletes the files, and there is no export or backup.
+- Data is local to one browser profile. Clearing site data deletes the files, including the Recycle Bin, and there is no export or backup.
 - AI features need a Gemini API key and network access. Without one they report "AI is not available".
 - Image generation depends on the configured Gemini image model being available to your key.
 

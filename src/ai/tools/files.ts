@@ -166,13 +166,14 @@ export const readFileMetadata = defineTool({
 
 export const deleteNode = defineTool({
   name: 'delete_node',
-  description: 'Delete a file or folder (folders are deleted with everything inside). The user is asked to confirm.',
+  description:
+    'Move a file or folder (with everything inside) to the Recycle Bin. The user can restore it later. Items already in the Recycle Bin are deleted permanently. Applications cannot be deleted. The user is asked to confirm.',
   input: z.object(target).refine(needTarget, TARGET_MSG),
   destructive: true,
-  describeForConfirm: (a) => `Delete ${a.path ?? `item ${a.fileId}`}?`,
+  describeForConfirm: (a) => `Move ${a.path ?? `item ${a.fileId}`} to the Recycle Bin?`,
   async handler(args, { actions }) {
     const r = await actions.deleteNode({ nodeId: args.fileId, path: args.fileId ? undefined : args.path });
-    return r.ok ? ok({ path: r.value.path, removedCount: r.value.removedIds.length }) : r;
+    return r.ok ? ok({ path: r.value.path, removedCount: r.value.removedIds.length, permanent: r.value.permanent === true }) : r;
   },
 });
 

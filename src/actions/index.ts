@@ -5,6 +5,7 @@ import { createCoreActions } from './core';
 export * from './types';
 export { createCoreActions, type CoreDeps } from './core';
 export { appForFileName, validateUpload } from './associations';
+export { createAppShortcutSync, syncAppShortcuts, type AppShortcutDeps } from './appShortcuts';
 
 /** Application-wide actions bound to the shared VFS and window store. */
 export const actions = createCoreActions({ vfs, launch: launchApp });
