@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Lint on save",
+      "trigger": "PostFileSave",
+      "description": "Runs ESLint when a TypeScript/JavaScript source file is saved",
+      "matcher": "\\.(ts|tsx|js|jsx)$",
+      "action": {
+        "type": "command",
+        "command": "npm run lint",
+        "timeout": 120
+      }
+    }
+  ]
+}

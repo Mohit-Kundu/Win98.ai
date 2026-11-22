@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Auto commit",
+      "trigger": "Stop",
+      "description": "Stages safe changed files and creates a local commit with a generated message. Never pushes.",
+      "action": {
+        "type": "agent",
+        "prompt": "If there are uncommitted changes (check `git status --porcelain`), create a local commit:\n1. Review `git status` and `git diff` to understand the changes.\n2. Stage files by explicit path (never `git add -A`, `git add .` or `git add -f`). Skip anything ignored by .gitignore, and skip sensitive files: .env and .env.* (except .env.example), keys, certificates, credentials, tokens, secrets, and anything containing secret values. If a file looks sensitive but is not gitignored, do not stage it and tell the user.\n3. Write a commit title in imperative mood, 72 characters or fewer, naming what changed. Add a short body (1-3 lines or bullets) explaining what and why.\n4. Run `git commit` with that message.\n5. NEVER run `git push`. The user will review and push manually.\nIf nothing is safe to commit, do nothing and say so in one line. Finish with the commit hash and title."
+      }
+    }
+  ]
+}
