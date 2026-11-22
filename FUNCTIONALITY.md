@@ -6,7 +6,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 
 ### Desktop shell
 - Draggable, resizable windows with minimize, maximize and close.
-- Taskbar, Start menu and desktop icons.
+- Taskbar, Start menu and desktop icons (drag to rearrange; positions are saved).
 - Opening a file launches the matching app by extension: `png`, `jpg`, `jpeg` open Paint; `wpd`, `txt`, `md` open WordPad; `pdf` opens PDF preview.
 
 ### Virtual file system

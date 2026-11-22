@@ -2,12 +2,12 @@
   "version": "v1",
   "hooks": [
     {
-      "name": "Update README and functionality docs",
+      "name": "Update README and FUNCTIONALITY docs",
       "trigger": "Stop",
-      "description": "After finishing a task, update README.md and functionality.md to reflect any changes made.",
+      "description": "After finishing a task, update README.md and FUNCTIONALITY.md to reflect any changes made.",
       "action": {
         "type": "agent",
-        "prompt": "A task was just completed. If it changed behavior, features, setup steps, commands, or structure, update README.md and functionality.md in the workspace root to match. Keep edits minimal and consistent with existing style. If neither file needs changes, say so in one line and skip the edits."
+        "prompt": "A task was just completed. If it changed behavior, features, setup steps, commands, or structure, update README.md and FUNCTIONALITY.md in the workspace root to match. Keep edits minimal and consistent with existing style. Use these exact filenames (uppercase FUNCTIONALITY.md); git paths are case-sensitive. If neither file needs changes, say so in one line and skip the edits."
       }
     }
   ]
