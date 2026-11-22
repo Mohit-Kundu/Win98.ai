@@ -5,6 +5,7 @@ import { runOrchestrator } from '../../ai/orchestrator';
 import type { OrchestratorResult, OrchestratorRun, OrchestratorStep, RunEvent } from '../../ai/types';
 import { ClippyAgent } from './ClippyAgent';
 import { nextChatId, priorTurns, useChatStore, type StepLine } from './chatStore';
+import { animationForToolStart, animationForToolSuccess } from './toolAnimations';
 import './clippy.css';
 
 export interface ClippyDeps {
@@ -102,11 +103,14 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
         const line: StepLine = { id: pendingId, tool: ev.tool, status: 'running' };
         lines.push(line);
         s.setLiveSteps((cur) => [...cur, line]);
+        const anim = animationForToolStart(ev.tool);
+        if (anim) s.react(anim);
       } else if (ev.type === 'tool_end') {
         const done = stepToLine(pendingId, ev.step);
         const idx = lines.findIndex((l) => l.id === pendingId);
         if (idx >= 0) lines[idx] = done;
         if (done.status === 'failed' || done.status === 'declined') s.react('Alert');
+        else s.react(animationForToolSuccess(ev.step.tool));
         s.setLiveSteps((cur) => cur.map((l) => (l.id === pendingId ? done : l)));
       }
     };

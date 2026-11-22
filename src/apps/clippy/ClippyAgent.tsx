@@ -63,6 +63,7 @@ const loaders = {
 export function ClippyAgent({ state, reaction, onClick, onStatus }: ClippyAgentProps) {
   const agentRef = useRef<AgentLike | null>(null);
   const stateRef = useRef(state);
+  const reactionAtRef = useRef(0);
   const clickRef = useRef(onClick);
   const statusRef = useRef(onStatus);
   stateRef.current = state;
@@ -129,7 +130,10 @@ export function ClippyAgent({ state, reaction, onClick, onStatus }: ClippyAgentP
   useEffect(() => {
     if (agentRef.current) applyState(agentRef.current, state);
     if (state === 'thinking') {
-      const t = setInterval(() => agentRef.current?.play('Thinking', THINK_MS), THINK_MS);
+      // Do not cut a reaction (tool animation) short by replaying Thinking.
+      const t = setInterval(() => {
+        if (Date.now() - reactionAtRef.current >= REACTION_MS) agentRef.current?.play('Thinking', THINK_MS);
+      }, THINK_MS);
       return () => clearInterval(t);
     }
     if (state === 'idle') {
@@ -154,6 +158,7 @@ export function ClippyAgent({ state, reaction, onClick, onStatus }: ClippyAgentP
   useEffect(() => {
     const agent = agentRef.current;
     if (!agent || reactionId === undefined || !reactionAnim) return;
+    reactionAtRef.current = Date.now();
     agent.stop();
     agent.play(reactionAnim, REACTION_MS);
   }, [reactionId, reactionAnim]);

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { PriorTurn, StoppedBy } from '../../ai/types';
+import type { ToolAnimation } from './toolAnimations';
 
 export type StepLineStatus = 'running' | 'ok' | 'failed' | 'declined';
 
@@ -31,7 +32,7 @@ export type ClippyPhase = 'idle' | 'thinking' | 'speaking';
 /** One-shot animation reaction. A new id triggers a new play. */
 export interface ClippyReaction {
   id: number;
-  animation: 'Alert' | 'Congratulate';
+  animation: 'Alert' | ToolAnimation;
 }
 
 interface ChatStore {
