@@ -19,6 +19,8 @@ const STORAGE_KEY = 'win98.desktopIconCells';
 type Cell = { col: number; row: number };
 type Cells = Record<string, Cell>;
 
+const cellKey = (c: Cell) => `${c.col},${c.row}`;
+
 function gridSize() {
   return {
     cols: Math.max(1, Math.floor((window.innerWidth - PAD) / CELL_W)),
@@ -48,12 +50,11 @@ function resolveCells(ids: string[], saved: Cells): Cells {
   const { cols, rows } = gridSize();
   const taken = new Set<string>();
   const out: Cells = {};
-  const key = (c: Cell) => `,`;
   for (const id of ids) {
     const c = saved[id];
-    if (c && c.col >= 0 && c.row >= 0 && c.col < cols && c.row < rows && !taken.has(key(c))) {
+    if (c && c.col >= 0 && c.row >= 0 && c.col < cols && c.row < rows && !taken.has(cellKey(c))) {
       out[id] = c;
-      taken.add(key(c));
+      taken.add(cellKey(c));
     }
   }
   let n = 0;
@@ -63,9 +64,9 @@ function resolveCells(ids: string[], saved: Cells): Cells {
     do {
       c = { col: Math.floor(n / rows), row: n % rows };
       n++;
-    } while (taken.has(key(c)) && n < cols * rows + ids.length);
+    } while (taken.has(cellKey(c)) && n < cols * rows + ids.length);
     out[id] = c;
-    taken.add(key(c));
+    taken.add(cellKey(c));
   }
   return out;
 }
@@ -76,7 +77,7 @@ function nearestFreeCell(target: Cell, taken: Set<string>): Cell {
   let bestDist = Infinity;
   for (let col = 0; col < cols; col++) {
     for (let row = 0; row < rows; row++) {
-      if (taken.has(`,`)) continue;
+      if (taken.has(cellKey({ col, row }))) continue;
       const d = (col - target.col) ** 2 + (row - target.row) ** 2;
       if (d < bestDist) {
         bestDist = d;
@@ -111,13 +112,13 @@ export function Desktop() {
       return;
     }
     const { cols, rows } = gridSize();
-    const start = cells[id];
+    const start = cells[id]!;
     const col = Math.min(cols - 1, Math.max(0, Math.round(start.col + (e.clientX - d.startX) / CELL_W)));
     const row = Math.min(rows - 1, Math.max(0, Math.round(start.row + (e.clientY - d.startY) / CELL_H)));
     const taken = new Set(
       Object.entries(cells)
         .filter(([other]) => other !== id)
-        .map(([, c]) => `,`),
+        .map(([, c]) => cellKey(c)),
     );
     const next = { ...cells, [id]: nearestFreeCell({ col, row }, taken) };
     setSaved(next);
@@ -130,7 +131,7 @@ export function Desktop() {
       <div className="workspace">
         <div className="desktop-icons">
           {icons.map((app) => {
-            const cell = cells[app.id];
+            const cell = cells[app.id]!;
             const dragging = drag?.id === app.id;
             return (
             <button

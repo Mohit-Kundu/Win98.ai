@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Write bug condition exploration test
+- [x] 1. Write bug condition exploration test
   - **Property 1: Bug Condition** - Desktop Icons Do Not Move or Persist
   - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -18,7 +18,7 @@
   - Mark task complete when test is written, run, and failure is documented
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
   - **Property 2: Preservation** - Non-Drag and Non-Layout Behavior
   - **IMPORTANT**: Follow observation-first methodology
   - Observe on UNFIXED code: double-click and Enter launch the app
@@ -32,9 +32,9 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 3. Fix for desktop icons not moving or persisting
+- [x] 3. Fix for desktop icons not moving or persisting
 
-  - [ ] 3.1 Implement the fix
+  - [x] 3.1 Implement the fix
     - In `src/desktop/desktop.css`, add `position: absolute;` to the `.desktop-icon` rule
     - In `src/desktop/Desktop.tsx`, add a module-level `const cellKey = (c: Cell) => \`${c.col},${c.row}\`;`
     - In `resolveCells`, replace the local `key` with `cellKey`
@@ -46,7 +46,7 @@
     - _Preservation: Launch, selection, click-without-move, default layout, resize handling, desktopIcon:false filtering, and window/taskbar/Start/Clippy behavior unchanged_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-  - [ ] 3.2 Verify bug condition exploration test now passes
+  - [x] 3.2 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** - Desktop Icons Move, Snap to Free Cells, and Persist
     - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
     - The test from task 1 encodes the expected behavior
@@ -55,7 +55,7 @@
     - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 3.3 Verify preservation tests still pass
+  - [x] 3.3 Verify preservation tests still pass
     - **Property 2: Preservation** - Non-Drag and Non-Layout Behavior
     - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
     - Run preservation property tests from step 2
@@ -63,5 +63,5 @@
     - Confirm all tests still pass after fix (no regressions)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.

@@ -34,6 +34,8 @@ body,
 }
 
 .desktop-icon {
+  position: absolute;
+  touch-action: none;
   width: 76px;
   min-height: 70px;
   padding: 2px;
