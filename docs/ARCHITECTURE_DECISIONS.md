@@ -27,7 +27,9 @@ Fallback if `clippyjs` fails under React/Vite: `@kusainovv/react-clippy`. Record
 
 Status (task 11.1): `clippyjs@0.1.0` works under React 19/Vite, so the fallback was not needed. The package inlines its assets as data URLs. `scripts/copy-clippy-assets.mjs` extracts them to `public/clippy/` (agent.json, map.png, sounds.json), and `ClippyAgent` passes custom loaders that fetch from `/clippy/`. Sound effects are animation cues only, with no speech.
 
-License note: the package code is MIT. The Clippy sprites and animations are derived from Microsoft Agent assets, which are not covered by the MIT license of the package. They are used here for a non-commercial demo. Confirm the terms before any redistribution or commercial use.
+Update: the Microsoft Agent sprites are replaced by "Floppy", an original 3.5-inch disk character. `scripts/floppy/build.py` (Python, Pillow, numpy) draws every frame and synthesizes the sound cues, then writes `public/clippy/agent.json`, `map.png` and `sounds.json`. File names and animation names are unchanged, so the app code is untouched. Do not run `scripts/copy-clippy-assets.mjs` anymore: it would overwrite the Floppy assets with the original Microsoft Agent ones.
+
+License note: the package code is MIT. The Floppy art, animation data and sounds are original to this project and contain no Microsoft Agent assets.
 
 ## ADR-5: Gemini models and access
 

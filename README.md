@@ -125,5 +125,5 @@ Known issues are listed in [docs/TECH_DEBT.md](docs/TECH_DEBT.md), for example a
 
 ## Notes
 
-- Clippy sprites and animations derive from Microsoft Agent assets, which the package's MIT license does not cover. They are used here for a non-commercial demo. Confirm the terms before redistributing or using commercially.
+- The assistant's character is "Floppy", an original 3.5-inch disk sprite with its own animations and sounds, containing no Microsoft Agent assets. To regenerate `public/clippy/` run `python scripts/floppy/build.py` (needs Python, Pillow and numpy).
 - Data lives in your browser's IndexedDB (`win98-ai-vfs`). Clearing site data deletes your files and the Recycle Bin.
