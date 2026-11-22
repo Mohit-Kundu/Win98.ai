@@ -3,7 +3,7 @@
     "hooks":  [
                   {
                       "name":  "Auto commit",
-                      "trigger":  "PostTaskExec",
+                      "trigger":  "Stop",
                       "description":  "Stages safe changed files and creates a local commit with a generated message. Never pushes.",
                       "action":  {
                                      "type":  "agent",

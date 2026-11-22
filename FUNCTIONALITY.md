@@ -50,6 +50,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 
 ### Clippy assistant
 - Animated Clippy with a chat window, bundled locally (no CDN).
+- While idle, Clippy plays a random idle animation every 6 to 12 seconds.
 - Gets minimal context about the focused app, folder and selection.
 - Performs multi-step requests with real tool calls, up to 10 per run.
 - Asks for confirmation before destructive actions and reports partial failures honestly.

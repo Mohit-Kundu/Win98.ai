@@ -22,6 +22,24 @@ interface AgentLike {
 
 const BASE = '/clippy/';
 const THINK_MS = 4000;
+const IDLE_MIN_MS = 6000;
+const IDLE_MAX_MS = 12000;
+const IDLE_ANIM_TIMEOUT_MS = 5000;
+const IDLE_ANIMATIONS = [
+  'IdleEyeBrowRaise',
+  'IdleFingerTap',
+  'IdleHeadScratch',
+  'IdleSideToSide',
+  'IdleAtom',
+  'IdleRopePile',
+  'LookLeft',
+  'LookRight',
+  'LookUp',
+  'LookDown',
+  'CheckingSomething',
+  'GetTechy',
+  'GetArtsy',
+];
 const TASKBAR_H = 28;
 const MARGIN = 8;
 /** Above .clippy-chat (99991) and windows, below the taskbar (100000). */
@@ -107,9 +125,24 @@ export function ClippyAgent({ state, onClick, onStatus }: ClippyAgentProps) {
   // Map state to animation.
   useEffect(() => {
     if (agentRef.current) applyState(agentRef.current, state);
-    if (state !== 'thinking') return;
-    const t = setInterval(() => agentRef.current?.play('Thinking', THINK_MS), THINK_MS);
-    return () => clearInterval(t);
+    if (state === 'thinking') {
+      const t = setInterval(() => agentRef.current?.play('Thinking', THINK_MS), THINK_MS);
+      return () => clearInterval(t);
+    }
+    if (state === 'idle') {
+      // Play a random idle animation every few seconds while nothing else is happening.
+      let timer: ReturnType<typeof setTimeout>;
+      const schedule = () => {
+        const delay = IDLE_MIN_MS + Math.random() * (IDLE_MAX_MS - IDLE_MIN_MS);
+        timer = setTimeout(() => {
+          const anim = IDLE_ANIMATIONS[Math.floor(Math.random() * IDLE_ANIMATIONS.length)];
+          if (anim) agentRef.current?.play(anim, IDLE_ANIM_TIMEOUT_MS);
+          schedule();
+        }, delay);
+      };
+      schedule();
+      return () => clearTimeout(timer);
+    }
   }, [state]);
 
   return null;
