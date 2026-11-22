@@ -91,6 +91,16 @@ function nearestFreeCell(target: Cell, taken: Set<string>): Cell {
   return best;
 }
 
+const RECYCLE_BIN_ID = 'recycleBin';
+
+/** True when the pointer is over the Recycle Bin desktop icon. */
+function isOverRecycleBin(x: number, y: number): boolean {
+  const bin = document.querySelector(`.desktop-icon[data-app-id="${RECYCLE_BIN_ID}"]`);
+  if (!bin) return false;
+  const r = bin.getBoundingClientRect();
+  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
 /** The Recycle Bin icon shows whether the bin holds anything. */
 function RecycleBinIcon() {
   const count = useTrash().length;
@@ -98,7 +108,7 @@ function RecycleBinIcon() {
 }
 
 function AppIcon({ app }: { app: AppDefinition }) {
-  return app.id === 'recycleBin' ? <RecycleBinIcon /> : <Icon name={app.icon} />;
+  return app.id === RECYCLE_BIN_ID ? <RecycleBinIcon /> : <Icon name={app.icon} />;
 }
 
 /** Right-click menu for a desktop icon. */
@@ -149,6 +159,12 @@ export function Desktop() {
       setDrag(null);
       return;
     }
+    // Dropping an application on the Recycle Bin is a delete attempt. Refuse it and leave the icon where it was.
+    if (id !== RECYCLE_BIN_ID && isOverRecycleBin(e.clientX, e.clientY)) {
+      setNotice(APP_PROTECTED_MESSAGE);
+      setDrag(null);
+      return;
+    }
     const { cols, rows } = gridSize();
     const start = cells[id]!;
     const col = Math.min(cols - 1, Math.max(0, Math.round(start.col + (e.clientX - d.startX) / CELL_W)));
@@ -175,6 +191,7 @@ export function Desktop() {
             <button
               key={app.id}
               type="button"
+              data-app-id={app.id}
               className={`desktop-icon${selected === app.id ? ' selected' : ''}${dragging ? ' dragging' : ''}`}
               style={{
                 left: PAD + cell.col * CELL_W + (dragging ? drag.dx : 0),

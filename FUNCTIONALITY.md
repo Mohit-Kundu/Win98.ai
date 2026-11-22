@@ -7,7 +7,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 ### Desktop shell
 - Draggable, resizable windows with minimize, maximize and close.
 - Taskbar, Start menu and desktop icons (drag to rearrange; positions are saved). Right-click an icon for Open and Delete.
-- Applications cannot be deleted. Pressing Delete on a desktop icon, or choosing Delete from its menu, shows "System Applications cannot be deleted".
+- Applications cannot be deleted. Pressing Delete on a desktop icon, or choosing Delete from its menu, shows "System Applications cannot be deleted". Dragging an icon onto the Recycle Bin shows the same message and the icon returns to its place.
 - A Recycle Bin icon on the desktop shows whether the bin is empty or full.
 - Opening a file launches the matching app by extension: `png`, `jpg`, `jpeg` open Paint; `wpd`, `txt`, `md` open WordPad; `pdf` opens PDF preview.
 

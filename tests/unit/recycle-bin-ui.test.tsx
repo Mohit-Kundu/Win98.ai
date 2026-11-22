@@ -69,6 +69,57 @@ describe('desktop icons', () => {
   });
 });
 
+describe('dragging applications onto the Recycle Bin', () => {
+  beforeEach(() => {
+    registerApp({ id: 'recycleBin', title: 'Recycle Bin', icon: 'recycleBinEmpty', component: Hello, fileExtensions: [], singleInstance: true });
+    HTMLElement.prototype.setPointerCapture = () => {};
+    HTMLElement.prototype.releasePointerCapture = () => {};
+  });
+  afterEach(() => unregisterApp('recycleBin'));
+
+  const iconOf = (title: string) => screen.getByText(title, { selector: '.desktop-icon span' }).closest('button')!;
+
+  /** jsdom has no layout, so give the bin icon a rectangle to drop on. */
+  const placeBinAt = (left: number, top: number) => {
+    iconOf('Recycle Bin').getBoundingClientRect = () =>
+      ({ left, top, right: left + 76, bottom: top + 70, width: 76, height: 70, x: left, y: top, toJSON: () => ({}) }) as DOMRect;
+  };
+
+  const drag = (el: HTMLElement, from: [number, number], to: [number, number]) => {
+    fireEvent.pointerDown(el, { button: 0, pointerId: 1, clientX: from[0], clientY: from[1] });
+    fireEvent.pointerMove(el, { pointerId: 1, clientX: to[0], clientY: to[1] });
+    fireEvent.pointerUp(el, { pointerId: 1, clientX: to[0], clientY: to[1] });
+  };
+
+  it('shows the refusal and leaves the icon where it was', async () => {
+    render(<Desktop />);
+    placeBinAt(400, 300);
+    const hello = iconOf('Hello');
+    const before = { left: hello.style.left, top: hello.style.top };
+    drag(hello, [20, 20], [430, 330]);
+    expect((await screen.findByRole('alert')).textContent).toBe(REFUSAL);
+    expect(hello.style.left).toBe(before.left);
+    expect(hello.style.top).toBe(before.top);
+    expect(localStorage.getItem('win98.desktopIconCells')).toBeNull();
+    expect(hello.classList.contains('dragging')).toBe(false);
+  });
+
+  it('dropping on empty desktop still just moves the icon', () => {
+    render(<Desktop />);
+    placeBinAt(400, 300);
+    drag(iconOf('Hello'), [20, 20], [220, 20]);
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(localStorage.getItem('win98.desktopIconCells')).not.toBeNull();
+  });
+
+  it('dropping the Recycle Bin on itself does not show the refusal', () => {
+    render(<Desktop />);
+    placeBinAt(400, 300);
+    drag(iconOf('Recycle Bin'), [430, 330], [440, 340]);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+});
+
 describe('Explorer and application shortcuts', () => {
   it('lists Program Files shortcuts, refuses to delete one, and hides the Recycle Bin folder', async () => {
     await syncAppShortcuts();

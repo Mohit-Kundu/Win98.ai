@@ -54,6 +54,25 @@ test.describe('Recycle Bin', () => {
     await expect(explorer.getByRole('option', { name: /Doomed/ })).toBeVisible();
   });
 
+  test('dragging an application onto the Recycle Bin is refused and the icon snaps back', async ({ page }) => {
+    await freshDesktop(page);
+    const paint = page.locator('.desktop-icon', { hasText: 'Paint' });
+    const bin = page.locator('.desktop-icon', { hasText: 'Recycle Bin' });
+    const before = await paint.boundingBox();
+    const target = await bin.boundingBox();
+    if (!before || !target) throw new Error('icons not visible');
+
+    await page.mouse.move(before.x + before.width / 2, before.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(target.x + target.width / 2, target.y + 20, { steps: 10 });
+    await page.mouse.up();
+
+    await expect(page.getByRole('alert')).toHaveText(REFUSAL);
+    await page.getByRole('button', { name: 'OK' }).click();
+    const after = await paint.boundingBox();
+    expect(after).toEqual(before);
+  });
+
   test('application shortcuts in Program Files cannot be deleted from Explorer', async ({ page }) => {
     await freshDesktop(page);
     const explorer = await openApp(page, 'File Explorer');
