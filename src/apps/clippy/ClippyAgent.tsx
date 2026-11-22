@@ -5,6 +5,8 @@ export type ClippyState = 'idle' | 'thinking' | 'speaking';
 
 export interface ClippyAgentProps {
   state: ClippyState;
+  /** One-shot reaction. Plays whenever id changes, overriding the state animation. */
+  reaction?: { id: number; animation: string } | null;
   onClick?: () => void;
   /** Reports whether the agent loaded ('ready') or failed to load ('failed'). */
   onStatus?: (s: 'ready' | 'failed') => void;
@@ -22,6 +24,7 @@ interface AgentLike {
 
 const BASE = '/clippy/';
 const THINK_MS = 4000;
+const REACTION_MS = 5000;
 const IDLE_MIN_MS = 6000;
 const IDLE_MAX_MS = 12000;
 const IDLE_ANIM_TIMEOUT_MS = 5000;
@@ -57,7 +60,7 @@ const loaders = {
  * Floating, draggable Clippy. Drag and positioning are provided by clippyjs.
  * idle -> library idle animations, thinking -> "Thinking" loop, speaking -> "Explain".
  */
-export function ClippyAgent({ state, onClick, onStatus }: ClippyAgentProps) {
+export function ClippyAgent({ state, reaction, onClick, onStatus }: ClippyAgentProps) {
   const agentRef = useRef<AgentLike | null>(null);
   const stateRef = useRef(state);
   const clickRef = useRef(onClick);
@@ -144,6 +147,16 @@ export function ClippyAgent({ state, onClick, onStatus }: ClippyAgentProps) {
       return () => clearTimeout(timer);
     }
   }, [state]);
+
+  // Declared after the state effect so a reaction wins when both change in the same render.
+  const reactionId = reaction?.id;
+  const reactionAnim = reaction?.animation;
+  useEffect(() => {
+    const agent = agentRef.current;
+    if (!agent || reactionId === undefined || !reactionAnim) return;
+    agent.stop();
+    agent.play(reactionAnim, REACTION_MS);
+  }, [reactionId, reactionAnim]);
 
   return null;
 }

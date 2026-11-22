@@ -42,6 +42,17 @@ describe('ClippyAgent', () => {
     expect(a0().play).toHaveBeenCalledWith('Explain', expect.any(Number));
   });
 
+  it('plays a reaction animation when the reaction id changes', async () => {
+    const { rerender } = render(<ClippyAgent state="idle" reaction={null} />);
+    await waitFor(() => expect(a0().show).toHaveBeenCalled());
+    rerender(<ClippyAgent state="speaking" reaction={{ id: 1, animation: 'Alert' }} />);
+    expect(a0().play).toHaveBeenLastCalledWith('Alert', expect.any(Number));
+    rerender(<ClippyAgent state="speaking" reaction={{ id: 1, animation: 'Alert' }} />);
+    expect(a0().play.mock.calls.filter((c) => c[0] === 'Alert').length).toBe(1);
+    rerender(<ClippyAgent state="speaking" reaction={{ id: 2, animation: 'Congratulate' }} />);
+    expect(a0().play).toHaveBeenLastCalledWith('Congratulate', expect.any(Number));
+  });
+
   it('calls onClick on a click without drag', async () => {
     const onClick = vi.fn();
     render(<ClippyAgent state="idle" onClick={onClick} />);

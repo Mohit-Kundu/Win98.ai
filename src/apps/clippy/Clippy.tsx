@@ -49,6 +49,7 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
   const d = { ...defaultDeps, ...deps };
   const open = useChatStore((s) => s.open);
   const phase = useChatStore((s) => s.phase);
+  const reaction = useChatStore((s) => s.reaction);
   const running = useChatStore((s) => s.running);
   const messages = useChatStore((s) => s.messages);
   const liveSteps = useChatStore((s) => s.liveSteps);
@@ -105,6 +106,7 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
         const done = stepToLine(pendingId, ev.step);
         const idx = lines.findIndex((l) => l.id === pendingId);
         if (idx >= 0) lines[idx] = done;
+        if (done.status === 'failed' || done.status === 'declined') s.react('Alert');
         s.setLiveSteps((cur) => cur.map((l) => (l.id === pendingId ? done : l)));
       }
     };
@@ -142,6 +144,9 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
     s.setLiveSteps(() => []);
     s.setRunning(false);
     s.setPhase('speaking');
+    const problem = finalLines.some((l) => l.status === 'failed' || l.status === 'declined') || result.stoppedBy === 'error';
+    if (problem) s.react('Alert');
+    else if (result.stoppedBy === 'model_done' && finalLines.some((l) => l.status === 'ok')) s.react('Congratulate');
     speakTimer.current = setTimeout(() => useChatStore.getState().setPhase('idle'), SPEAK_MS);
   };
 
@@ -149,7 +154,7 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
 
   return (
     <>
-      <ClippyAgent state={phase} onClick={() => useChatStore.getState().setOpen(!open)} onStatus={setAgentStatus} />
+      <ClippyAgent state={phase} reaction={reaction} onClick={() => useChatStore.getState().setOpen(!open)} onStatus={setAgentStatus} />
       {agentStatus === 'failed' && (
         <button
           type="button"

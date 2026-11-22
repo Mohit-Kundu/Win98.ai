@@ -28,14 +28,22 @@ type NewMessage = ChatMessage extends infer M ? (M extends { id: number } ? Omit
 
 export type ClippyPhase = 'idle' | 'thinking' | 'speaking';
 
+/** One-shot animation reaction. A new id triggers a new play. */
+export interface ClippyReaction {
+  id: number;
+  animation: 'Alert' | 'Congratulate';
+}
+
 interface ChatStore {
   open: boolean;
   phase: ClippyPhase;
+  reaction: ClippyReaction | null;
   running: boolean;
   messages: ChatMessage[];
   liveSteps: StepLine[];
   setOpen(open: boolean): void;
   setPhase(phase: ClippyPhase): void;
+  react(animation: ClippyReaction['animation']): void;
   setRunning(running: boolean): void;
   addMessage(message: NewMessage): void;
   setLiveSteps(updater: (steps: StepLine[]) => StepLine[]): void;
@@ -45,13 +53,14 @@ interface ChatStore {
 let nextId = 1;
 export const nextChatId = () => nextId++;
 
-const initial = { open: false, phase: 'idle' as ClippyPhase, running: false, messages: [] as ChatMessage[], liveSteps: [] as StepLine[] };
+const initial = { open: false, phase: 'idle' as ClippyPhase, reaction: null as ClippyReaction | null, running: false, messages: [] as ChatMessage[], liveSteps: [] as StepLine[] };
 
 /** Session-only chat state. Lives in memory, so a page reload clears it (no long-term memory). */
 export const useChatStore = create<ChatStore>((set) => ({
   ...initial,
   setOpen: (open) => set({ open }),
   setPhase: (phase) => set({ phase }),
+  react: (animation) => set({ reaction: { id: nextChatId(), animation } }),
   setRunning: (running) => set({ running }),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, { ...m, id: nextChatId() } as ChatMessage] })),
   setLiveSteps: (updater) => set((s) => ({ liveSteps: updater(s.liveSteps) })),
