@@ -62,7 +62,27 @@ const shapes: Record<IconName, ReactElement> = {
   ),
 };
 
+/** Icons drawn as 32x32 pixel-art PNGs in public/icons instead of inline SVG. */
+const bitmaps: Partial<Record<IconName, string>> = {
+  recycleBinEmpty: '/icons/recycle-empty.png',
+  recycleBinFull: '/icons/recycle-full.png',
+};
+
 export function Icon({ name, size = 32 }: { name: IconName; size?: number }) {
+  const src = bitmaps[name];
+  if (src) {
+    return (
+      <img
+        src={src}
+        width={size}
+        height={size}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        style={{ imageRendering: 'pixelated' }}
+      />
+    );
+  }
   return (
     <svg
       width={size}
