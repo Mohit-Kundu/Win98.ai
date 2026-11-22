@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Update README and functionality docs",
+      "trigger": "Stop",
+      "description": "After finishing a task, update README.md and functionality.md to reflect any changes made.",
+      "action": {
+        "type": "agent",
+        "prompt": "A task was just completed. If it changed behavior, features, setup steps, commands, or structure, update README.md and functionality.md in the workspace root to match. Keep edits minimal and consistent with existing style. If neither file needs changes, say so in one line and skip the edits."
+      }
+    }
+  ]
+}
