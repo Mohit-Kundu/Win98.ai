@@ -1,5 +1,6 @@
 import type { ChatRequest, ChatResponse, Content, FunctionCallItem } from '../../shared/api-contracts';
 import { err, type ErrorCode, type Result } from '../../shared/errors';
+import { createLogger } from '../log';
 import { aiClient } from './client';
 import { isDestructive, registry as defaultRegistry, type ToolActions, type ToolRegistry } from './registry';
 import { registerCoreTools } from './tools';
@@ -13,6 +14,7 @@ import type {
 } from './types';
 
 export * from './types';
+const log = createLogger('orchestrator');
 
 /** Fixed limits from the requirements. */
 export const MAX_TOOL_CALLS = 10;
@@ -34,6 +36,13 @@ export interface OrchestratorDeps {
   actions?: ToolActions;
   maxToolCalls?: number;
   maxRounds?: number;
+}
+
+/** Log-safe copy of tool arguments: long strings (such as file text) are cut to 60 characters. */
+function briefArgs(args: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(args).map(([k, v]) => [k, typeof v === 'string' && v.length > 60 ? `${v.slice(0, 60)}... (${v.length} chars)` : v]),
+  );
 }
 
 async function defaultActions(): Promise<ToolActions> {
@@ -149,8 +158,13 @@ export async function runOrchestrator(run: OrchestratorRun, deps: OrchestratorDe
   let stoppedBy: StoppedBy = 'model_done';
   let error: { code: ErrorCode; message: string } | undefined;
 
+  const startedAt = Date.now();
+  log.info('run start', { tools: tools.length, activeApp, historyTurns: history.length, userChars: run.userText.length });
   const finish = (): OrchestratorResult => {
     run.signal?.removeEventListener('abort', onAbort);
+    const summary = { stoppedBy, steps: steps.length, ms: Date.now() - startedAt };
+    if (error) log.error('run end', { ...summary, code: error.code, message: error.message });
+    else log.info('run end', summary);
     return { finalText, report: buildReport(steps, stoppedBy, error, maxCalls), steps, stoppedBy, ...(error ? { error } : {}) };
   };
 
@@ -166,7 +180,9 @@ export async function runOrchestrator(run: OrchestratorRun, deps: OrchestratorDe
       }
 
       run.onEvent?.({ type: 'thinking' });
+      const chatStart = Date.now();
       const resp = await client.chat({ contents: history, tools, systemContext }, { signal });
+      log.debug('model round', { round, ok: resp.ok, ms: Date.now() - chatStart, calls: resp.ok ? resp.value.functionCalls.length : 0 });
       if (!resp.ok) {
         if (isAbort(signal, resp.error)) stoppedBy = 'aborted';
         else {
@@ -204,6 +220,8 @@ export async function runOrchestrator(run: OrchestratorRun, deps: OrchestratorDe
           continue;
         }
         executed++;
+        const toolStart = Date.now();
+        log.info('tool start', { tool: call.name, args: briefArgs(call.args) });
 
         let status: StepStatus;
         let result: Result<unknown>;
@@ -240,6 +258,10 @@ export async function runOrchestrator(run: OrchestratorRun, deps: OrchestratorDe
           }
         }
         const step: OrchestratorStep = { tool: call.name, args: call.args, result, status };
+        const toolFields = { tool: call.name, status, ms: Date.now() - toolStart };
+        if (status === 'ok') log.info('tool end', toolFields);
+        else if (status === 'declined') log.warn('tool end', toolFields);
+        else if (!result.ok) log.error('tool end', { ...toolFields, code: result.error.code, message: result.error.message });
         steps.push(step);
         run.onEvent?.({ type: 'tool_end', step });
         parts.push(responsePart(call.name, result));

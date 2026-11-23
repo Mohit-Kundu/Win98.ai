@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import type { z } from 'zod';
+import { z } from 'zod';
 import {
   ChatRequestSchema,
   ChatResponseSchema,
@@ -16,10 +16,24 @@ import {
   TextTransformResponseSchema,
 } from '../../shared/api-contracts.js';
 import type { ApiErrorCode, ApiErrorResponse, HealthResponse } from '../../shared/api-contracts.js';
+import { LOG_LEVELS, errorSummary } from '../../shared/log.js';
+import { createLogger, writeLog } from '../logger.js';
 import { GeminiError } from '../geminiClient.js';
 import type { GeminiClient } from '../geminiClient.js';
 
 export const GEMINI_TIMEOUT_MS = 30_000;
+const ClientLogBodySchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        level: z.enum(LOG_LEVELS),
+        scope: z.string().max(40),
+        message: z.string().max(1000),
+        fields: z.record(z.string(), z.unknown()).optional(),
+      }),
+    )
+    .max(100),
+});
 
 const STATUS: Record<ApiErrorCode, number> = {
   VALIDATION: 400,
@@ -52,7 +66,16 @@ export interface ApiOptions {
 export function createApiRouter(opts: ApiOptions): Router {
   const router = Router();
   const timeoutMs = opts.timeoutMs ?? GEMINI_TIMEOUT_MS;
-  const log = opts.log ?? ((m, e) => console.error(m, e instanceof Error ? e.name : 'error'));
+  const serverLog = createLogger('api');
+  const log = opts.log ?? ((m, e) => serverLog.error(m, { error: errorSummary(e) }));
+
+  // Browser log lines are printed in this terminal so client and server activity appear together.
+  router.post('/log', (req, res) => {
+    const parsed = ClientLogBodySchema.safeParse(req.body);
+    if (!parsed.success) return sendError(res, 'VALIDATION');
+    for (const e of parsed.data.entries) writeLog(e.level, `client:${e.scope}`, e.message, e.fields);
+    res.status(204).end();
+  });
 
   router.get('/health', (_req, res) => {
     const body: HealthResponse = { ok: true, ai: opts.gemini !== null };
@@ -80,6 +103,7 @@ export function createApiRouter(opts: ApiOptions): Router {
         res.json(checked.data);
       } catch (e) {
         if (e instanceof GeminiError) {
+          serverLog.warn(`AI call failed for ${path}`, { code: e.code });
           if (e.code === 'AI_TIMEOUT' || e.code === 'AI_UNAVAILABLE') return sendError(res, e.code);
         } else {
           log(`AI call failed for ${path}`, e);

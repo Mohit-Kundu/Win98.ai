@@ -78,6 +78,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - Endpoints: `/api/health`, `/chat`, `/generate-image`, `/metadata`, `/search-query`, `/organize`, `/text-transform`.
 - Request validation, 10 MB body limit, 30 second timeout, structured errors.
 - Mock_Gemini mode (`MOCK_GEMINI=1`) for offline demos and tests. Disabled in `npm start`.
+- Terminal logging (`LOG_LEVEL`): request start, end and duration, Gemini latency and errors. The browser forwards orchestrator steps, tool results, VFS write errors and ErrorBoundary catches through `POST /api/log`, so they appear in the same terminal.
 
 ### Quality tooling
 - Vitest unit and component tests, Playwright E2E tests, ESLint, TypeScript.

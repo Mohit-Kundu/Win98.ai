@@ -11,6 +11,9 @@ import {
 import type { ChatResponse, TextTransformRequest } from '../shared/api-contracts.js';
 import { GeminiError } from './geminiClient.js';
 import type { GeminiClient } from './geminiClient.js';
+import { createLogger } from './logger.js';
+import { errorSummary } from '../shared/log.js';
+const log = createLogger('gemini');
 
 export const DEFAULT_TEXT_MODEL = 'gemini-3.8-flash';
 export const DEFAULT_IMAGE_MODEL = 'gemini-nano-banana-2.1';
@@ -122,10 +125,17 @@ export function createGeminiClient(opts: Options): GeminiClient {
     config: Record<string, unknown>,
     signal: AbortSignal,
   ): Promise<GenerateContentResponse> {
+    const started = performance.now();
+    const ms = () => Math.round(performance.now() - started);
     try {
-      return await ai.models.generateContent({ model, contents, config: { ...config, abortSignal: signal } });
+      const res = await ai.models.generateContent({ model, contents, config: { ...config, abortSignal: signal } });
+      log.info('generateContent ok', { model, ms: ms() });
+      return res;
     } catch (e) {
-      throw toGeminiError(e, signal);
+      const mapped = toGeminiError(e, signal);
+      // Name and HTTP status only: raw SDK messages can contain the request URL.
+      log.error('generateContent failed', { model, ms: ms(), code: mapped.code, error: errorSummary(e) });
+      throw mapped;
     }
   }
 

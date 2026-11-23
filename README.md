@@ -69,6 +69,9 @@ To try the AI offline with scripted replies, set `MOCK_GEMINI=1` the same way. M
 | `GEMINI_IMAGE_MODEL` | `gemini-nano-banana-2.1` | Model for image generation. |
 | `MOCK_GEMINI` | unset | Set to `1` to use scripted Mock_Gemini (development and tests). |
 | `PORT` | `8787` | Proxy server port. |
+| `LOG_LEVEL` | `info` | Terminal log level: `debug`, `info`, `warn`, `error` or `silent`. Use `debug` to also see health checks and model rounds. |
+
+Logs print in the terminal that runs `npm run server`: each request with status and duration, Gemini call latency and errors, and the browser's AI orchestrator steps, tool results, VFS write errors and caught render errors (forwarded through `POST /api/log`). Prompts are not logged, long tool arguments such as file text are cut to 60 characters, and the API key is never logged.
 
 ### Production build
 

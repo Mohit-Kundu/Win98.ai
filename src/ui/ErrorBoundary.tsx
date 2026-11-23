@@ -1,5 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
+import { createLogger } from '../log';
+
+const log = createLogger('error-boundary');
+
 interface Props {
   children: ReactNode;
   /** Short name shown in the error message. */
@@ -21,6 +25,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error(`[${this.props.label}] render error`, error, info.componentStack);
+    log.error('render error', {
+      label: this.props.label,
+      error: error.message,
+      componentStack: info.componentStack?.trim().split('\n').slice(0, 6).join(' | '),
+    });
   }
 
   render() {

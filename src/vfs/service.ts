@@ -2,6 +2,7 @@ import { err, ok, type Result } from '../../shared/errors';
 import { getDb, ROOT_ID, type NodeMeta, type NodeRecord, type SystemKind, type TrashRecord, type VfsDb } from './db';
 import { VfsEmitter, vfsEvents, type VfsEvent, type VfsEventType } from './events';
 import { sha256Hex } from './hash';
+import { createLogger } from '../log';
 import { extOf, formatPath, nameKey, resolveSegments, validateName } from './paths';
 
 export interface CreateArgs {
@@ -64,10 +65,13 @@ export const APP_PROTECTED_MESSAGE = 'System Applications cannot be deleted';
 
 const newId = (): string => crypto.randomUUID();
 
-const writeFailed = (e: unknown): Result<never> =>
-  err('WRITE_FAILED', 'The change could not be saved. Previous content was kept.', {
+const log = createLogger('vfs');
+const writeFailed = (e: unknown): Result<never> => {
+  log.error('write failed', { cause: e instanceof Error ? e.message : String(e) });
+  return err('WRITE_FAILED', 'The change could not be saved. Previous content was kept.', {
     cause: e instanceof Error ? e.message : String(e),
   });
+};
 
 const notFound = (what: string): Result<never> => err('NOT_FOUND', `${what} was not found.`);
 

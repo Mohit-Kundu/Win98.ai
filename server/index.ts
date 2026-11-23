@@ -5,7 +5,33 @@ import type { GeminiClient } from './geminiClient.js';
 import { createApiRouter, sendError } from './routes/api.js';
 import type { ApiOptions } from './routes/api.js';
 
+import { createLogger } from './logger.js';
+import { errorSummary } from '../shared/log.js';
 export const BODY_LIMIT = '10mb';
+const log = createLogger('server');
+
+/** Logs each request when it arrives and again when the response is finished, with status and duration. */
+const requestLogger: RequestHandler = (req, res, next) => {
+  // Client log forwarding would drown out everything else, and health polling is only shown at debug level.
+  if (req.originalUrl === '/api/log') return next();
+  const health = req.originalUrl === '/api/health';
+  const started = performance.now();
+  const target = `${req.method} ${req.originalUrl}`;
+  if (health) log.debug(`-> ${target}`);
+  else log.info(`-> ${target}`);
+  res.on('finish', () => {
+    const fields = { status: res.statusCode, ms: Math.round(performance.now() - started) };
+    const msg = `<- ${target}`;
+    if (res.statusCode >= 500) log.error(msg, fields);
+    else if (res.statusCode >= 400) log.warn(msg, fields);
+    else if (health) log.debug(msg, fields);
+    else log.info(msg, fields);
+  });
+  res.on('close', () => {
+    if (!res.writableFinished) log.warn(`<- ${target} closed before response`, { ms: Math.round(performance.now() - started) });
+  });
+  next();
+};
 export const DEFAULT_PORT = 8787;
 
 export type AppOptions = ApiOptions & {
@@ -17,6 +43,7 @@ export type AppOptions = ApiOptions & {
 export function createApp(opts: AppOptions): Express {
   const app = express();
   app.disable('x-powered-by');
+  app.use(requestLogger);
   app.use(express.json({ limit: BODY_LIMIT }));
   for (const mw of opts.middleware ?? []) app.use('/api', mw);
   app.use('/api', createApiRouter(opts));
@@ -33,7 +60,7 @@ export function createApp(opts: AppOptions): Express {
     if (type === 'entity.parse.failed' || type === 'encoding.unsupported' || type === 'charset.unsupported') {
       return sendError(res, 'VALIDATION');
     }
-    console.error('Unhandled server error', err instanceof Error ? err.name : 'error');
+    log.error('Unhandled server error', { error: errorSummary(err) });
     sendError(res, 'AI_FAILED');
   });
 
@@ -66,7 +93,7 @@ export async function startServer(port = Number(process.env.PORT) || DEFAULT_POR
   const mocked = process.env.MOCK_GEMINI === '1' && gemini !== null && middleware.length > 0;
   const app = createApp({ gemini, middleware });
   return app.listen(port, () => {
-    console.log(
+    log.info(
       `AI proxy listening on http://localhost:${port} (AI ${gemini ? (mocked ? 'enabled: MOCK_GEMINI' : 'enabled') : 'disabled: GEMINI_API_KEY not set'})`,
     );
   });
