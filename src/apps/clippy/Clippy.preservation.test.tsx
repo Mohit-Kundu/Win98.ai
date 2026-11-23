@@ -121,7 +121,7 @@ describe('Preservation: animation mapping (3.3)', () => {
     useChatStore.getState().setOpen(true);
     const run = vi.fn(async (): Promise<OrchestratorResult> => ({ finalText: 'ok', report: 'r', steps: [], stoppedBy: 'model_done' }));
     render(<Clippy deps={{ run, buildContext: () => ({}) }} />);
-    fireEvent.change(screen.getByTestId('clippy-input'), { target: { value: 'hi' } });
+    fireEvent.change(screen.getByTestId('clippy-input'), { target: { value: 'make me a folder' } });
     fireEvent.click(screen.getByTestId('clippy-send'));
     await waitFor(() => expect(useChatStore.getState().phase).toBe('speaking'));
     await act(async () => {

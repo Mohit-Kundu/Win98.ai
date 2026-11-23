@@ -96,7 +96,7 @@ npm start
 - **WordPad:** rich text (bold, italic, underline, bullet list), images, undo/redo, AI write and rewrite.
 - **CMD:** `dir`, `cd`, `mkdir`, `del`, `rd`, `restore`, `cls`, `help`, plus `ai <instruction>` and `nl on` for natural-language commands.
 - **PDF preview:** read-only page rendering.
-- **Clippy:** chat with 18 tools across the file system and apps, multi-step requests (up to 10 tool calls per run), confirmation for destructive actions.
+- **Clippy:** chat with 18 tools across the file system and apps, multi-step requests (up to 10 tool calls per run), confirmation for destructive actions. Greetings, thanks, goodbyes and "what can you do?" get instant local replies without calling the AI.
 
 ## Not currently supported
 

@@ -4,6 +4,7 @@ import { buildAiContext } from '../../ai/context';
 import { runOrchestrator } from '../../ai/orchestrator';
 import type { OrchestratorResult, OrchestratorRun, OrchestratorStep, RunEvent } from '../../ai/types';
 import { ClippyAgent } from './ClippyAgent';
+import { matchSmallTalk, type SmallTalkReply } from './smallTalk';
 import { nextChatId, priorTurns, useChatStore, type StepLine } from './chatStore';
 import { animationForToolStart, animationForToolSuccess } from './toolAnimations';
 import './clippy.css';
@@ -12,12 +13,15 @@ export interface ClippyDeps {
   run: (run: OrchestratorRun) => Promise<OrchestratorResult>;
   confirm: OrchestratorRun['confirm'];
   buildContext: typeof buildAiContext;
+  /** Local small-talk matcher. Returns null when the message should go to the AI. */
+  smallTalk: (text: string) => SmallTalkReply | null;
 }
 
 const defaultDeps: ClippyDeps = {
   run: (r) => runOrchestrator(r),
   confirm: requestAiConfirmation,
   buildContext: buildAiContext,
+  smallTalk: (text) => matchSmallTalk(text),
 };
 
 const SPEAK_MS = 3000;
@@ -82,6 +86,17 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
     if (!userText || store.running) return;
     setText('');
     clearTimeout(speakTimer.current);
+
+    // Small talk is answered locally: no context, no AI call, no tool steps, and no AI history.
+    const reply = depsRef.current.smallTalk(userText);
+    if (reply) {
+      store.addMessage({ role: 'user', text: userText, smallTalk: true });
+      store.addMessage({ role: 'assistant', text: reply.text, report: '', steps: [], stoppedBy: 'model_done', smallTalk: true });
+      store.setPhase('speaking');
+      store.react(reply.animation);
+      speakTimer.current = setTimeout(() => useChatStore.getState().setPhase('idle'), SPEAK_MS);
+      return;
+    }
 
     // Capture the context now, from the focused app window (the chat is not a window).
     const context = depsRef.current.buildContext();

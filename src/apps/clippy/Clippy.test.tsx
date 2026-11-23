@@ -154,7 +154,7 @@ describe('Clippy chat', () => {
         release = () => resolve(result());
       });
     render(<Clippy deps={{ run, buildContext: () => ({}) }} />);
-    sendMessage('hi');
+    sendMessage('make me a folder');
     await act(async () => {});
     expect(useChatStore.getState().phase).toBe('thinking');
     await act(async () => release());
@@ -251,5 +251,61 @@ describe('Clippy chat', () => {
     expect(screen.getByTestId('clippy-step').getAttribute('data-status')).toBe('declined');
     expect(screen.getByTestId('clippy-report').textContent).not.toMatch(/OK delete_thing/);
     expect(screen.getByTestId('clippy-report').textContent).toContain('SKIPPED delete_thing');
+  });
+});
+
+describe('Clippy Small talk replies', () => {
+  it('answers small talk locally without building context or calling the AI', async () => {
+    const run = vi.fn(async () => result());
+    const buildContext = vi.fn(() => ({}));
+    render(<Clippy deps={{ run, buildContext }} />);
+    await sendMessage('Hello!');
+    await waitFor(() => expect(screen.getAllByTestId('clippy-message')).toHaveLength(2));
+    expect(run).not.toHaveBeenCalled();
+    expect(buildContext).not.toHaveBeenCalled();
+    const reply = screen.getAllByTestId('clippy-message')[1];
+    expect(reply?.getAttribute('data-role')).toBe('assistant');
+    expect(reply?.textContent?.length).toBeGreaterThan('Clippy:'.length + 5);
+    expect(screen.queryByTestId('clippy-step')).toBeNull();
+    expect(screen.queryByTestId('clippy-report')).toBeNull();
+    expect(screen.queryByTestId('clippy-running')).toBeNull();
+    expect(useChatStore.getState().running).toBe(false);
+  });
+
+  it('sets a reaction and the speaking phase, then returns to idle', async () => {
+    vi.useFakeTimers();
+    render(<Clippy deps={{ run: vi.fn(), buildContext: () => ({}), smallTalk: () => ({ intent: 'greeting', text: 'Welcome!', animation: 'Greeting' }) }} />);
+    sendMessage('hi');
+    await act(async () => {});
+    expect(useChatStore.getState().reaction?.animation).toBe('Greeting');
+    expect(useChatStore.getState().phase).toBe('speaking');
+    await act(async () => {
+      vi.advanceTimersByTime(3500);
+    });
+    expect(useChatStore.getState().phase).toBe('idle');
+  });
+
+  it('still sends real requests to the AI', async () => {
+    const run = vi.fn(async () => result({ finalText: 'Made it.' }));
+    render(<Clippy deps={{ run, buildContext: () => ({}) }} />);
+    await sendMessage('hi, create a folder called X');
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+  });
+
+  it('keeps small talk turns out of the history sent to the AI', async () => {
+    const run = vi.fn(async (r: OrchestratorRun) => (void r, result({ finalText: 'Done.' })));
+    render(<Clippy deps={{ run, buildContext: () => ({}) }} />);
+    await sendMessage('hello');
+    await waitFor(() => expect(screen.getAllByTestId('clippy-message')).toHaveLength(2));
+    await sendMessage('create a folder called X');
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    expect(run.mock.calls[0]?.[0].history).toEqual([]);
+    // Both small talk turns are still displayed.
+    await waitFor(() => expect(screen.getAllByTestId('clippy-message')).toHaveLength(4));
+    await sendMessage('thanks');
+    await sendMessage('now another thing');
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+    const history = run.mock.calls[1]?.[0].history ?? [];
+    expect(history.map((h) => h.text.split('\n')[0])).toEqual(['create a folder called X', 'Done.']);
   });
 });

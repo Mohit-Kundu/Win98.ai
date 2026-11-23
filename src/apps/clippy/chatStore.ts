@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { PriorTurn, StoppedBy } from '../../ai/types';
+import type { SmallTalkAnimation } from './smallTalk';
 import type { ToolAnimation } from './toolAnimations';
 
 export type StepLineStatus = 'running' | 'ok' | 'failed' | 'declined';
@@ -13,10 +14,18 @@ export interface StepLine {
 }
 
 export type ChatMessage =
-  | { id: number; role: 'user'; text: string }
+  | {
+      id: number;
+      role: 'user';
+      text: string;
+      /** Answered locally by a small talk reply. Shown in the chat but never sent to the AI as history. */
+      smallTalk?: boolean;
+    }
   | {
       id: number;
       role: 'assistant';
+      /** A local small talk reply (no AI call). Excluded from the history sent to the AI. */
+      smallTalk?: boolean;
       /** The model's own words. Display only, never evidence of success. */
       text: string;
       /** Authoritative summary built from the executed steps. */
@@ -32,7 +41,7 @@ export type ClippyPhase = 'idle' | 'thinking' | 'speaking';
 /** One-shot animation reaction. A new id triggers a new play. */
 export interface ClippyReaction {
   id: number;
-  animation: 'Alert' | ToolAnimation;
+  animation: 'Alert' | ToolAnimation | SmallTalkAnimation;
 }
 
 interface ChatStore {
@@ -72,6 +81,7 @@ export const useChatStore = create<ChatStore>((set) => ({
 export function priorTurns(messages: ChatMessage[]): PriorTurn[] {
   const turns: PriorTurn[] = [];
   for (const m of messages) {
+    if (m.smallTalk) continue; // Small talk answered locally never reaches the AI.
     if (m.role === 'user') turns.push({ role: 'user', text: m.text });
     else {
       // The report is authoritative, so the model sees what really happened.
