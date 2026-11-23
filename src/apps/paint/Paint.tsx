@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { Canvas, Ellipse, FabricImage, Line, PencilBrush, Rect, type FabricObject } from 'fabric';
+import { Canvas, Ellipse, FabricImage, IText, Line, PencilBrush, Rect, type FabricObject } from 'fabric';
 import { PaintPencil, PaintBrush, PaintErasercolor, PaintCurve } from 'react-old-icons';
 import { documentActions, imageActions, readImageFile, type Result } from '../../actions';
 import { fitWithin, MAX_SIDE, runAutomate } from './aiImage';
@@ -12,7 +12,7 @@ import { getPaintContext, registerPaintContext } from './context';
 import { registerPaintController } from './controller';
 import './paint.css';
 
-type Tool = 'pencil' | 'brush' | 'eraser' | 'line' | 'rect' | 'ellipse' | 'fill';
+type Tool = 'pencil' | 'brush' | 'eraser' | 'line' | 'rect' | 'ellipse' | 'fill' | 'text';
 
 // Win98 pixel-art SVG icons for shape tools that have no equivalent in react-old-icons
 const RectIcon = () => (
@@ -104,6 +104,13 @@ const FillIcon = () => (
 );
 
 // Map each tool to its Win98 MS Paint icon from react-old-icons (or inline SVG for shape tools)
+const TextIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+    <rect x="3"  y="3"  width="14" height="2" fill="#000"/>
+    <rect x="9"  y="3"  width="2"  height="13" fill="#000"/>
+  </svg>
+);
+
 const TOOL_ICONS: Record<Tool, React.ReactNode> = {
   pencil:  <PaintPencil      size={22} />,
   brush:   <PaintBrush       size={22} />,
@@ -112,6 +119,7 @@ const TOOL_ICONS: Record<Tool, React.ReactNode> = {
   rect:    <RectIcon />,
   ellipse: <EllipseIcon />,
   fill:    <FillIcon />,
+  text:    <TextIcon />,
 };
 
 const TOOLS: Array<{ id: Tool; label: string }> = [
@@ -122,6 +130,7 @@ const TOOLS: Array<{ id: Tool; label: string }> = [
   { id: 'rect',    label: 'Rectangle' },
   { id: 'ellipse', label: 'Ellipse' },
   { id: 'fill',    label: 'Fill' },
+  { id: 'text',    label: 'Text' },
 ];
 
 export const PALETTE = [
@@ -259,6 +268,7 @@ export function Paint({ windowId, launchArgs }: AppProps) {
   const hostRef = useRef<HTMLCanvasElement>(null);
   const canvasRef = useRef<Canvas | null>(null);
   const historyRef = useRef<HistoryStack<Snapshot> | null>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
 
   const [tool, setTool] = useState<Tool>('pencil');
   const [color, setColor] = useState('#000000');
@@ -273,9 +283,16 @@ export function Paint({ windowId, launchArgs }: AppProps) {
   const [aiError, setAiError] = useState<string | null>(null);
   const aiAbort = useRef<AbortController | null>(null);
 
+  // Text overlay state.
+  const [textOverlay, setTextOverlay] = useState<{ x: number; y: number; canvasX: number; canvasY: number } | null>(null);
+  const [textValue, setTextValue] = useState('');
+  const textInputRef = useRef<HTMLInputElement>(null);
+
   // Latest values for handlers that are attached once.
   const live = useRef({ tool, color, size, dirty, file });
   live.current = { tool, color, size, dirty, file };
+  // Will be updated after commitText is defined below.
+  const commitTextRef = useRef<(value: string, canvasX: number, canvasY: number) => void>(() => undefined);
 
   const snapshot = useCallback((): Snapshot => {
     const c = canvasRef.current!;
@@ -374,6 +391,31 @@ export function Paint({ windowId, launchArgs }: AppProps) {
     [placeImage],
   );
 
+  /** Commit pending text overlay to the canvas, then close the overlay. */
+  const commitText = useCallback((value: string, canvasX: number, canvasY: number) => {
+    setTextOverlay(null);
+    setTextValue('');
+    const text = value.trim();
+    if (!text) return;
+    const c = canvasRef.current;
+    if (!c) return;
+    const col = live.current.color;
+    const itext = new IText(text, {
+      left: canvasX,
+      top: canvasY,
+      fill: col,
+      fontFamily: 'sans-serif',
+      fontSize: 16,
+      selectable: false,
+      evented: false,
+    });
+    c.add(itext);
+    c.requestRenderAll();
+    record();
+  }, [record]);
+
+  commitTextRef.current = commitText;
+
   // Canvas lifecycle.
   useEffect(() => {
     const el = hostRef.current;
@@ -405,6 +447,19 @@ export function Paint({ windowId, launchArgs }: AppProps) {
         floodFill(c, p.x, p.y, col);
         // Record history after the async fill settles (next microtask tick).
         setTimeout(() => record(), 0);
+        return;
+      }
+      if (t === 'text') {
+        const p = c.getScenePoint(opt.e);
+        // Screen position relative to the canvas element so the overlay sits on top of the click point.
+        const canvasEl = hostRef.current;
+        const rect = canvasEl ? canvasEl.getBoundingClientRect() : { left: 0, top: 0 };
+        const surfaceEl = surfaceRef.current;
+        const surfaceRect = surfaceEl ? surfaceEl.getBoundingClientRect() : { left: 0, top: 0 };
+        const x = rect.left - surfaceRect.left + (opt.e as MouseEvent).offsetX;
+        const y = rect.top - surfaceRect.top + (opt.e as MouseEvent).offsetY;
+        setTextOverlay({ x, y, canvasX: p.x, canvasY: p.y });
+        setTextValue('');
         return;
       }
       if (t !== 'line' && t !== 'rect' && t !== 'ellipse') return;
@@ -474,7 +529,7 @@ export function Paint({ windowId, launchArgs }: AppProps) {
     if (!c) return;
     const freehand = tool === 'pencil' || tool === 'brush' || tool === 'eraser';
     c.isDrawingMode = freehand;
-    c.defaultCursor = tool === 'fill' ? 'cell' : 'crosshair';
+    c.defaultCursor = tool === 'fill' ? 'cell' : tool === 'text' ? 'text' : 'crosshair';
     if (freehand) {
       const brush = new PencilBrush(c);
       brush.color = tool === 'eraser' ? '#ffffff' : color;
@@ -482,6 +537,11 @@ export function Paint({ windowId, launchArgs }: AppProps) {
       c.freeDrawingBrush = brush;
     }
   }, [tool, color, size]);
+
+  // Focus the text input when the text overlay opens.
+  useEffect(() => {
+    if (textOverlay) textInputRef.current?.focus();
+  }, [textOverlay]);
 
   const exportPng = (): string => canvasRef.current!.toDataURL({ format: 'png', multiplier: 1, enableRetinaScaling: false });
 
@@ -606,8 +666,28 @@ export function Paint({ windowId, launchArgs }: AppProps) {
             </select>
           </label>
         </div>
-        <div className="paint-surface" onPointerDown={(e) => e.currentTarget.parentElement?.parentElement?.focus({ preventScroll: true })}>
+        <div className="paint-surface" ref={surfaceRef} style={{ position: 'relative' }} onPointerDown={(e) => e.currentTarget.parentElement?.parentElement?.focus({ preventScroll: true })}>
           <canvas ref={hostRef} />
+          {textOverlay && (
+            <input
+              ref={textInputRef}
+              className="paint-text-input"
+              type="text"
+              value={textValue}
+              style={{ left: textOverlay.x, top: textOverlay.y, color }}
+              onChange={(e) => setTextValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  commitText(textValue, textOverlay.canvasX, textOverlay.canvasY);
+                } else if (e.key === 'Escape') {
+                  setTextOverlay(null);
+                  setTextValue('');
+                }
+              }}
+              onBlur={() => commitText(textValue, textOverlay.canvasX, textOverlay.canvasY)}
+            />
+          )}
         </div>
       </div>
       <div className="paint-palette" role="radiogroup" aria-label="Palette">
