@@ -35,7 +35,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - "Organize with AI...": proposes moves from names and metadata only (never file content). You can uncheck or edit rows before applying.
 
 ### Paint
-- Tools: pencil, brush, eraser, line, rectangle, ellipse, fill (flood fill).
+- Tools: pencil, brush, eraser, line, rectangle, ellipse, fill (flood fill), text.
 - Color palette and brush size.
 - Undo and redo.
 - Save and Save As to PNG, with an overwrite prompt.
@@ -96,7 +96,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - PDF export, advanced page layout, advanced image editing.
 
 ### Limitations
-- Paint has no layers, transparency, text tool or selection tools. The eraser paints white (TD-2).
+- Paint has no layers, transparency or selection tools. The eraser paints white (TD-2).
 - Paint's default window shows only part of the 640x480 canvas, so you need to scroll or resize (TD-7).
 - PDF preview text is not selectable, and the PDF library adds about 1 MB when first used (TD-4).
 - WordPad AI Rewrite can report "The selection has no text" after a triple-click selection (TD-6).
