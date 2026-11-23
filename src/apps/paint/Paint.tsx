@@ -12,7 +12,7 @@ import { getPaintContext, registerPaintContext } from './context';
 import { registerPaintController } from './controller';
 import './paint.css';
 
-type Tool = 'pencil' | 'brush' | 'eraser' | 'line' | 'rect' | 'ellipse';
+type Tool = 'pencil' | 'brush' | 'eraser' | 'line' | 'rect' | 'ellipse' | 'fill';
 
 // Win98 pixel-art SVG icons for shape tools that have no equivalent in react-old-icons
 const RectIcon = () => (
@@ -37,6 +37,72 @@ const EllipseIcon = () => (
   </svg>
 );
 
+// Win98 MS Paint fill bucket — pixel trace matching the reference icon
+const FillIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+
+    {/* ── handle loop (left side, small D shape) ── */}
+    <rect x="1" y="3" width="1" height="1" fill="#000"/>
+    <rect x="1" y="4" width="1" height="1" fill="#000"/>
+    <rect x="1" y="5" width="1" height="1" fill="#000"/>
+    <rect x="2" y="2" width="1" height="1" fill="#000"/>
+    <rect x="2" y="6" width="1" height="1" fill="#000"/>
+    <rect x="3" y="2" width="1" height="1" fill="#000"/>
+    <rect x="3" y="6" width="1" height="1" fill="#000"/>
+    <rect x="4" y="3" width="1" height="1" fill="#000"/>
+    <rect x="4" y="5" width="1" height="1" fill="#000"/>
+    {/* handle interior (grey) */}
+    <rect x="2" y="3" width="2" height="1" fill="#808080"/>
+    <rect x="2" y="4" width="2" height="1" fill="#808080"/>
+    <rect x="2" y="5" width="2" height="1" fill="#808080"/>
+
+    {/* ── bucket body outline ── */}
+    {/* top edge (runs diagonally upper-left to upper-right) */}
+    <rect x="4" y="2" width="1" height="1" fill="#000"/>
+    <rect x="5" y="1" width="5" height="1" fill="#000"/>
+    <rect x="10" y="2" width="1" height="1" fill="#000"/>
+    {/* right wall */}
+    <rect x="11" y="3" width="1" height="4" fill="#000"/>
+    {/* bottom edge */}
+    <rect x="10" y="7" width="1" height="1" fill="#000"/>
+    <rect x="5"  y="8" width="5" height="1" fill="#000"/>
+    <rect x="4"  y="7" width="1" height="1" fill="#000"/>
+    {/* left wall (the open/pouring side) */}
+    <rect x="4" y="3" width="1" height="1" fill="#000"/>
+    <rect x="4" y="6" width="1" height="1" fill="#000"/>
+
+    {/* ── teal top face of bucket (the lid / angled top plane) ── */}
+    <rect x="5" y="2"  width="5" height="1" fill="#008080"/>
+    <rect x="5" y="3"  width="5" height="1" fill="#008080"/>
+    {/* teal highlight strip */}
+    <rect x="6" y="2"  width="3" height="1" fill="#00c8c8"/>
+
+    {/* ── white front face of bucket ── */}
+    <rect x="5" y="4" width="5" height="1" fill="#fff"/>
+    <rect x="5" y="5" width="5" height="1" fill="#fff"/>
+    <rect x="5" y="6" width="5" height="1" fill="#fff"/>
+    <rect x="5" y="7" width="5" height="1" fill="#fff"/>
+
+    {/* ── teal shadow on right inside edge ── */}
+    <rect x="10" y="3" width="1" height="4" fill="#008080"/>
+
+    {/* ── spout / drip stream from bottom-left corner ── */}
+    <rect x="3" y="7" width="1" height="1" fill="#000"/>
+    <rect x="3" y="8" width="1" height="1" fill="#000"/>
+    <rect x="2" y="9" width="1" height="1" fill="#000"/>
+
+    {/* ── single teardrop drop ── */}
+    {/* pointed tip */}
+    <rect x="2" y="10" width="1" height="1" fill="#000"/>
+    {/* body */}
+    <rect x="1" y="11" width="3" height="1" fill="#000"/>
+    <rect x="1" y="12" width="3" height="1" fill="#000"/>
+    {/* rounded base */}
+    <rect x="2" y="13" width="1" height="1" fill="#000"/>
+
+  </svg>
+);
+
 // Map each tool to its Win98 MS Paint icon from react-old-icons (or inline SVG for shape tools)
 const TOOL_ICONS: Record<Tool, React.ReactNode> = {
   pencil:  <PaintPencil      size={22} />,
@@ -45,6 +111,7 @@ const TOOL_ICONS: Record<Tool, React.ReactNode> = {
   line:    <PaintCurve       size={22} />,
   rect:    <RectIcon />,
   ellipse: <EllipseIcon />,
+  fill:    <FillIcon />,
 };
 
 const TOOLS: Array<{ id: Tool; label: string }> = [
@@ -54,6 +121,7 @@ const TOOLS: Array<{ id: Tool; label: string }> = [
   { id: 'line',    label: 'Line' },
   { id: 'rect',    label: 'Rectangle' },
   { id: 'ellipse', label: 'Ellipse' },
+  { id: 'fill',    label: 'Fill' },
 ];
 
 export const PALETTE = [
@@ -89,6 +157,102 @@ function bytesToDataUrl(bytes: ArrayBuffer, mime: string): string {
 }
 
 const baseName = (path: string | undefined): string => (path?.split(/[\\/]/).pop() ?? 'untitled').replace(/\.[^.]*$/, '');
+
+/**
+ * Flood-fill on the Fabric canvas's underlying HTML canvas element.
+ * Renders the full canvas to a temporary offscreen canvas (flattened), runs
+ * a BFS fill, then draws the result back as a background-locked image so that
+ * Fabric objects remain editable on top.
+ */
+function floodFill(fabricCanvas: Canvas, startX: number, startY: number, fillHex: string): void {
+  // Parse fill colour into r/g/b/a components.
+  const br = parseInt(fillHex.slice(1, 3), 16);
+  const bg = parseInt(fillHex.slice(3, 5), 16);
+  const bb = parseInt(fillHex.slice(5, 7), 16);
+
+  const w = fabricCanvas.getWidth();
+  const h = fabricCanvas.getHeight();
+
+  // Flatten the full scene onto an offscreen canvas.
+  const off = document.createElement('canvas');
+  off.width = w;
+  off.height = h;
+  const ctx = off.getContext('2d', { willReadFrequently: true })!;
+  // Draw background colour first.
+  ctx.fillStyle = typeof fabricCanvas.backgroundColor === 'string' ? fabricCanvas.backgroundColor : '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  // Stamp the current Fabric rendering on top.
+  const dataUrl = fabricCanvas.toDataURL({ format: 'png', multiplier: 1, enableRetinaScaling: false });
+  const img = new Image();
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+
+    const ix = Math.round(startX);
+    const iy = Math.round(startY);
+    if (ix < 0 || ix >= w || iy < 0 || iy >= h) return;
+
+    const idx = (iy * w + ix) * 4;
+    const tr = data[idx]!;
+    const tg = data[idx + 1]!;
+    const tb = data[idx + 2]!;
+    const ta = data[idx + 3]!;
+
+    // Nothing to do if the target pixel already matches the fill colour.
+    if (tr === br && tg === bg && tb === bb && ta === 255) return;
+
+    const tolerance = 32;
+    const matches = (i: number) => {
+      const dr = data[i]!     - tr;
+      const dg = data[i + 1]! - tg;
+      const db = data[i + 2]! - tb;
+      const da = data[i + 3]! - ta;
+      return Math.sqrt(dr * dr + dg * dg + db * db + da * da) <= tolerance;
+    };
+
+    const visited = new Uint8Array(w * h);
+    const queue: number[] = [iy * w + ix];
+    visited[iy * w + ix] = 1;
+
+    while (queue.length > 0) {
+      const pos = queue.pop()!;
+      const px = pos % w;
+      const py = (pos - px) / w;
+      const i4 = pos * 4;
+      data[i4]     = br;
+      data[i4 + 1] = bg;
+      data[i4 + 2] = bb;
+      data[i4 + 3] = 255;
+
+      const neighbours = [
+        px > 0     ? pos - 1 : -1,
+        px < w - 1 ? pos + 1 : -1,
+        py > 0     ? pos - w : -1,
+        py < h - 1 ? pos + w : -1,
+      ];
+      for (const n of neighbours) {
+        if (n >= 0 && !visited[n] && matches(n * 4)) {
+          visited[n] = 1;
+          queue.push(n);
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // Push the filled result back onto the Fabric canvas as a locked image.
+    const filledUrl = off.toDataURL('image/png');
+    fabricCanvas.clear();
+    fabricCanvas.backgroundColor = '#ffffff';
+    FabricImage.fromURL(filledUrl).then((fImg) => {
+      fImg.set({ left: 0, top: 0, selectable: false, evented: false });
+      fabricCanvas.add(fImg);
+      fabricCanvas.requestRenderAll();
+    });
+  };
+  img.src = dataUrl;
+}
 
 export function Paint({ windowId, launchArgs }: AppProps) {
   useContextProvider('paint', windowId, () => getPaintContext(windowId));
@@ -236,6 +400,13 @@ export function Paint({ windowId, launchArgs }: AppProps) {
     let shape: FabricObject | null = null;
     c.on('mouse:down', (opt) => {
       const { tool: t, color: col, size: sz } = live.current;
+      if (t === 'fill') {
+        const p = c.getScenePoint(opt.e);
+        floodFill(c, p.x, p.y, col);
+        // Record history after the async fill settles (next microtask tick).
+        setTimeout(() => record(), 0);
+        return;
+      }
       if (t !== 'line' && t !== 'rect' && t !== 'ellipse') return;
       const p = c.getScenePoint(opt.e);
       start = { x: p.x, y: p.y };
@@ -303,7 +474,7 @@ export function Paint({ windowId, launchArgs }: AppProps) {
     if (!c) return;
     const freehand = tool === 'pencil' || tool === 'brush' || tool === 'eraser';
     c.isDrawingMode = freehand;
-    c.defaultCursor = 'crosshair';
+    c.defaultCursor = tool === 'fill' ? 'cell' : 'crosshair';
     if (freehand) {
       const brush = new PencilBrush(c);
       brush.color = tool === 'eraser' ? '#ffffff' : color;
