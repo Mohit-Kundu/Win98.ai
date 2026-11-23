@@ -291,8 +291,6 @@ export function Paint({ windowId, launchArgs }: AppProps) {
   // Latest values for handlers that are attached once.
   const live = useRef({ tool, color, size, dirty, file });
   live.current = { tool, color, size, dirty, file };
-  // Will be updated after commitText is defined below.
-  const commitTextRef = useRef<(value: string, canvasX: number, canvasY: number) => void>(() => undefined);
 
   const snapshot = useCallback((): Snapshot => {
     const c = canvasRef.current!;
@@ -414,7 +412,15 @@ export function Paint({ windowId, launchArgs }: AppProps) {
     record();
   }, [record]);
 
-  commitTextRef.current = commitText;
+  // Cancel any open text overlay when the user switches tools.
+  useEffect(() => {
+    if (textOverlay) {
+      setTextOverlay(null);
+      setTextValue('');
+    }
+    // We only want to run this when `tool` changes; textOverlay is intentionally not a dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool]);
 
   // Canvas lifecycle.
   useEffect(() => {
@@ -451,13 +457,12 @@ export function Paint({ windowId, launchArgs }: AppProps) {
       }
       if (t === 'text') {
         const p = c.getScenePoint(opt.e);
-        // Screen position relative to the canvas element so the overlay sits on top of the click point.
-        const canvasEl = hostRef.current;
-        const rect = canvasEl ? canvasEl.getBoundingClientRect() : { left: 0, top: 0 };
+        // offsetX/offsetY are already relative to the canvas element's padding box.
+        // The canvas sits at (0,0) within the surface div, so we only need to subtract
+        // any scroll offset the surface div may have accumulated.
         const surfaceEl = surfaceRef.current;
-        const surfaceRect = surfaceEl ? surfaceEl.getBoundingClientRect() : { left: 0, top: 0 };
-        const x = rect.left - surfaceRect.left + (opt.e as MouseEvent).offsetX;
-        const y = rect.top - surfaceRect.top + (opt.e as MouseEvent).offsetY;
+        const x = (opt.e as MouseEvent).offsetX - (surfaceEl?.scrollLeft ?? 0);
+        const y = (opt.e as MouseEvent).offsetY - (surfaceEl?.scrollTop ?? 0);
         setTextOverlay({ x, y, canvasX: p.x, canvasY: p.y });
         setTextValue('');
         return;
