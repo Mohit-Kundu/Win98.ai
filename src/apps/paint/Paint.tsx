@@ -690,7 +690,14 @@ export function Paint({ windowId, launchArgs }: AppProps) {
                   setTextValue('');
                 }
               }}
-              onBlur={() => commitText(textValue, textOverlay.canvasX, textOverlay.canvasY)}
+              onBlur={(e) => {
+                if ((e.relatedTarget as HTMLElement)?.closest('.paint-tools')) {
+                  setTextOverlay(null);
+                  setTextValue('');
+                } else {
+                  commitText(textValue, textOverlay.canvasX, textOverlay.canvasY);
+                }
+              }}
             />
           )}
         </div>
