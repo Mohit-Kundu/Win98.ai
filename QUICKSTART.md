@@ -1,4 +1,4 @@
-﻿# Quick Start
+# Quick Start
 
 ## Requirements
 
@@ -29,21 +29,21 @@ Open http://localhost:5173.
 
 ## Enable the AI (optional)
 
-Without a Gemini API key the desktop works, but Clippy and other AI features reply "AI is not available".
+Without an API key the desktop works, but Clippy and other AI features reply "AI is not available".
 
-The server reads `GEMINI_API_KEY` from the environment. It does not load `.env` by itself, so set the variable in the terminal before starting the server.
+The server uses OpenRouter by default and reads `OPENROUTER_API_KEY` from the environment. To use Gemini instead, set `AI_PROVIDER=gemini` and `GEMINI_API_KEY`. `npm run server` and `npm start` load `.env` from the project root (Node 20.6 or later), so you can put the variables there. Variables set in the terminal also work and take precedence over `.env`.
 
 PowerShell:
 
 ```
-$env:GEMINI_API_KEY = "your-key"
+$env:OPENROUTER_API_KEY = "your-key"
 npm run server
 ```
 
 macOS / Linux:
 
 ```
-GEMINI_API_KEY=your-key npm run server
+OPENROUTER_API_KEY=your-key npm run server
 ```
 
 To try the AI offline with scripted replies, set `MOCK_GEMINI=1` the same way.

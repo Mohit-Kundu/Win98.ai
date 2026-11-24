@@ -43,19 +43,19 @@ Open http://localhost:5173.
 
 ### Enabling AI
 
-Without a key the desktop works, but AI features reply "AI is not available". The server reads `GEMINI_API_KEY` from the environment. It does not load `.env` by itself, so set the variable in the terminal before starting the server.
+Without a key the desktop works, but AI features reply "AI is not available". The server uses OpenRouter by default and reads `OPENROUTER_API_KEY` from the environment. To use Gemini instead, set `AI_PROVIDER=gemini` and `GEMINI_API_KEY`. `npm run server` and `npm start` load `.env` from the project root (Node 20.6 or later), so you can put the variables there. Variables set in the terminal also work and take precedence over `.env`.
 
 PowerShell:
 
 ```
-$env:GEMINI_API_KEY = "your-key"
+$env:OPENROUTER_API_KEY = "your-key"
 npm run server
 ```
 
 macOS / Linux:
 
 ```
-GEMINI_API_KEY=your-key npm run server
+OPENROUTER_API_KEY=your-key npm run server
 ```
 
 To try the AI offline with scripted replies, set `MOCK_GEMINI=1` the same way. Mock mode is ignored by `npm start`.
@@ -64,9 +64,14 @@ To try the AI offline with scripted replies, set `MOCK_GEMINI=1` the same way. M
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `GEMINI_API_KEY` | none | Gemini key. Stays on the server and is never sent to the browser. |
+| `GEMINI_API_KEY` | none | Gemini key, used when `AI_PROVIDER=gemini`. Stays on the server and is never sent to the browser. |
 | `GEMINI_TEXT_MODEL` | `gemini-3.8-flash` | Model for chat, search, metadata and text tasks. |
 | `GEMINI_IMAGE_MODEL` | `gemini-nano-banana-2.1` | Model for image generation. |
+| `AI_PROVIDER` | `openrouter` | Which provider the server uses: `openrouter` or `gemini`. |
+| `OPENROUTER_API_KEY` | none | OpenRouter key, used when `AI_PROVIDER=openrouter`. |
+| `OPENROUTER_TEXT_MODEL` | `deepseek/deepseek-v4-flash` | OpenRouter model for chat, search, metadata and text tasks. |
+| `OPENROUTER_IMAGE_MODEL` | `black-forest-labs/flux.2-klein-4b` | OpenRouter model for image generation. |
+| `OPENROUTER_IMAGE_API` | `images` | `images` calls OpenRouter's image endpoint (FLUX and other image-only models). `chat` uses chat completions (Gemini image models). |
 | `MOCK_GEMINI` | unset | Set to `1` to use scripted Mock_Gemini (development and tests). |
 | `PORT` | `8787` | Proxy server port. |
 | `LOG_LEVEL` | `info` | Terminal log level: `debug`, `info`, `warn`, `error` or `silent`. Use `debug` to also see health checks and model rounds. |

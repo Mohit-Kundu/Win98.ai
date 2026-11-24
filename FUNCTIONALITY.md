@@ -77,6 +77,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - Express server that holds the Gemini API key and forwards requests. The key never reaches the browser.
 - Endpoints: `/api/health`, `/chat`, `/generate-image`, `/metadata`, `/search-query`, `/organize`, `/text-transform`.
 - Request validation, 10 MB body limit, 30 second timeout, structured errors.
+- Selectable AI provider: OpenRouter (default) or Gemini, chosen with `AI_PROVIDER`.
 - Mock_Gemini mode (`MOCK_GEMINI=1`) for offline demos and tests. Disabled in `npm start`.
 - Terminal logging (`LOG_LEVEL`): request start, end and duration, Gemini latency and errors. The browser forwards orchestrator steps, tool results, VFS write errors and ErrorBoundary catches through `POST /api/log`, so they appear in the same terminal.
 

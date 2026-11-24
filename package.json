@@ -14,8 +14,8 @@
     "typecheck": "tsc --noEmit",
     "check-docs": "node scripts/check-docs.ts",
     "record-results": "node scripts/record-results.ts",
-    "server": "tsx server/index.ts",
-    "start": "tsx server/index.ts --production"
+    "server": "tsx --env-file=.env server/index.ts",
+    "start": "tsx --env-file=.env server/index.ts --production"
   },
   "dependencies": {
     "@google/genai": "^3.6.1",
