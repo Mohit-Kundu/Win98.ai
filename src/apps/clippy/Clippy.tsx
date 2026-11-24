@@ -26,6 +26,14 @@ const defaultDeps: ClippyDeps = {
 
 const SPEAK_MS = 3000;
 
+/** Removes emoji so Clippy's replies are plain text even if the model ignores the prompt. */
+export function stripEmoji(text: string): string {
+  return text
+    .replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\u200D\uFE0F\u20E3]/gu, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
 function shorten(text: string, max = 100): string {
   const one = text.replace(/\s+/g, ' ').trim();
   return one.length > max ? one.slice(0, max - 3) + '...' : one;
@@ -155,8 +163,8 @@ export function Clippy({ deps }: { deps?: Partial<ClippyDeps> }) {
     const finalLines = lines.map((l) => (l.status === 'running' ? { ...l, status: 'failed' as const, detail: 'not completed' } : l));
     s.addMessage({
       role: 'assistant',
-      text: result.finalText.trim(),
-      report: result.report,
+      text: stripEmoji(result.finalText),
+      report: stripEmoji(result.report),
       steps: finalLines,
       stoppedBy: result.stoppedBy,
     });
