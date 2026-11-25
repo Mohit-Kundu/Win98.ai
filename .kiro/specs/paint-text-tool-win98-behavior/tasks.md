@@ -1,0 +1,187 @@
+# Implementation Plan
+
+- [ ] 1. Write bug condition exploration test
+  - **Property 1: Bug Condition** - Text Tool Behaves Like Windows 98 Paint
+  - **CRITICAL**: This test MUST FAIL on unfixed code. The failure confirms the bug exists.
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior. It validates the fix when it passes after implementation.
+  - **GOAL**: Surface counterexamples that show the Text tool is a literal textbox and not a Windows 98 text region
+  - **Scoped PBT Approach**: The bug is deterministic and needs a real browser (layout, focus, pointer gestures, pixels). Scope each property to the concrete failing gesture from the design examples, run in Playwright. Pure-geometry properties are covered later in Vitest.
+  - Create `e2e/paint-text-tool-win98.explore.spec.ts`. Reuse `freshDesktop`, `clickCanvas`, and the `paintCanvas`, `paintUpper`, `toolButton`, `openPaintWithText`, and `countDarkPixels` helpers from the current `e2e/paint-text-tool.spec.ts`. Locate the new UI by `data-testid="text-region"`, `[data-handle]`, `role="toolbar"` named "Fonts", and `aria-pressed` buttons "Opaque" and "Transparent".
+  - Encode the `isBugCondition` cases from the design as one test each, asserting the `expectedBehavior` outcome:
+    - Drag defines region: drag (50, 40) to (250, 120). Assert a `text-region` of about 200 x 80, a dotted border, 8 `[data-handle]` elements, and a focused `<textarea>` (bugfix 2.1, 2.2)
+    - Wrap: type a long sentence into a narrow region and commit. Assert the committed pixels form at least 2 text rows (2.3)
+    - Enter is a newline: type "a", Enter, "b". Assert the region is still open and holds two lines (2.3)
+    - Fonts toolbar: assert a "Fonts" toolbar with font, size, Bold, Italic, and Underline controls exists while a region is open (2.4)
+    - Opaque fill: fill the canvas red, choose Opaque, right-click a blue swatch, commit. Assert a region corner pixel is blue (2.5)
+    - Move and resize: drag the border and the `se` handle of an open region and assert the region follows (2.6)
+    - Raster, one step: commit text, press Undo once, and assert the canvas equals the pre-text canvas. Assert no region or input remains after commit (2.7)
+    - Escape and tool switch commit: type text, then press Escape in one case and click Pencil in another. Assert the pixels are drawn (2.8, assumption: Escape commits)
+    - Save commits first: type text, click Save As..., and assert the text pixels are present and the region is gone (2.9)
+  - Run the file on UNFIXED code with `npx playwright test e2e/paint-text-tool-win98.explore.spec.ts`
+  - **EXPECTED OUTCOME**: The tests FAIL. This is correct and proves the bug exists. The "raster, one step" Undo assertion may pass in part, because the current `IText` commit also records one step, but its other assertions fail.
+  - Document the counterexamples found. Expected ones: the only text element is `input.paint-text-input` (an `INPUT`, 80px wide, no handles). Enter commits one line. Escape and tool switch draw nothing. No Fonts toolbar, mode buttons, or background color indicator exist.
+  - If any case passes on unfixed code, re-check the root cause that predicted it before continuing
+  - Mark the task complete when the tests are written, run, and the failures are documented
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9_
+
+- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Behavior Outside the Text Tool Is Unchanged
+  - **IMPORTANT**: Follow observation-first methodology
+  - Run the existing suites on UNFIXED code and record that they pass: `history.test.ts`, `pencilStrokePreservation.test.ts`, `pencilStrokeCommitBlur.bug.test.ts`, `aiImage.test.ts`, and the e2e specs `paint-persistence`, `paint-ai-generation`, `harness`, `desktop-icon-drag`, `wordpad-*`, `recycle-bin`, `clippy-*`, and `cmd-shared-fs`
+  - Observe on unfixed code, for inputs where `isBugCondition` is false:
+    - Pencil, line, rectangle, ellipse, and fill gestures on a fixed canvas produce a specific snapshot JSON and `HistoryStack` depth
+    - Undo and Redo, from the toolbar and from Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z, restore the canvas through the history stack with no region open
+    - Each tool button toggles `aria-pressed` and the cursor, and Text becomes the active tool when clicked
+    - A left-click on a palette swatch sets the foreground color, and brush size changes the stroke width
+    - Save, Save As, and reopen round-trip a PNG. AI Automate with no region shows its dialog and loading overlay and replaces the canvas
+    - The eraser paints white
+  - Add `src/apps/paint/textToolPreservation.test.ts` (jsdom, `fast-check`, canvas stub as in `pencilStrokePreservation.test.ts`). Write property-based tests:
+    - For random non-Text tool gestures on a fixed canvas stub, the snapshot JSON matches the baseline recorded from unfixed code (3.1)
+    - For random sequences of draw, undo, and redo, `HistoryStack` depth and the restored snapshot match the model (3.2)
+    - For random canvas sizes, `toDataURL` dimensions equal the CSS canvas dimensions (3.4)
+  - Add `e2e/paint-text-preservation.spec.ts` for the browser-level observations: tool button state and cursor (3.3), left-click palette and brush size (3.6), Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z with no region open (3.2, 3.7), Save and reopen round-trip (3.4), and AI Automate with no region (3.5). Do not include any Text-tool region assertion here.
+  - Run all of these on UNFIXED code
+  - **EXPECTED OUTCOME**: The tests PASS. This confirms the baseline behavior to preserve.
+  - Mark the task complete when the tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
+
+- [ ] 3. Fix the Paint Text tool to work like Windows 98 Paint
+
+  - [ ] 3.1 Add the region model and geometry (`src/apps/paint/textRegion.ts`)
+    - Create the pure module with no DOM and no Fabric. Export types `Rect {x, y, w, h}`, `HandleId` (`n ne e se s sw w nw`), `TextStyle {family, sizePt, bold, italic, underline}`, and `TextMode` (`'transparent' | 'opaque'`)
+    - Export constants `DRAG_THRESHOLD = 3`, `DEFAULT_REGION = {w: 100, h: 40}`, `MIN_REGION = {w: 20, h: 20}`, and `ESCAPE_ACTION = 'commit'`. Comment that the sizes are design choices to confirm in review, and that `ESCAPE_ACTION` is the open assumption from bugfix 2.8
+    - Implement `normalizeRect`, `clampRect`, `moveRect`, `resizeRect(rect, handle, dx, dy, bounds)`, and `regionFromGesture(p0, p1, canvasSize)`. A drag returns the clamped, normalized rectangle. A drag shorter than `DRAG_THRESHOLD` returns the default-size rectangle anchored at `p0`, shifted to stay inside the canvas. Resizing from a west or north handle keeps the opposite edge fixed. Move and resize stay inside `bounds` and at least `MIN_REGION`
+    - Implement `ptToPx(pt) = pt * 4 / 3`, `fontCss(style)`, and `lineHeightPx(style)`. Export the default style Arial 12 pt (16 px), the fixed font family list (Arial, Courier New, Times New Roman, Verdana, Tahoma, Comic Sans MS, each with a generic fallback), and the size list 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72
+    - _Bug_Condition: isBugCondition(input) where input.event is PointerDragOnCanvas, PointerClickOnCanvas, MoveRegion, or ResizeRegion_
+    - _Expected_Behavior: Property 3 (region definition, move, resize) from design_
+    - _Preservation: no existing module is touched_
+    - _Requirements: 2.1, 2.2, 2.6_
+
+  - [ ] 3.2 Write unit and property tests for the geometry (`src/apps/paint/textRegion.test.ts`)
+    - Unit: a drag in any direction gives a positive normalized rectangle. A drag below the threshold gives the default size at the anchor. Results are clamped to the canvas. A click near the right or bottom edge shifts the default region inside the canvas
+    - Unit: `ptToPx(12) = 16`. Bold, Italic, and size map to the expected `fontCss` values. The default style is 16 px. `lineHeightPx` returns one value per style
+    - Property (`fast-check`): for random start and end points, canvas sizes, handles, and deltas, the rectangle is inside the canvas, at least `MIN_REGION`, and has positive width and height (Property 3)
+    - Property: moving then moving back, and resizing with a zero delta, return the original rectangle. Resizing a west or north handle leaves the opposite edge unchanged
+    - Run `npx vitest --run src/apps/paint/textRegion.test.ts`
+    - _Requirements: 2.1, 2.2, 2.6_
+
+  - [ ] 3.3 Add the raster commit (`src/apps/paint/textRaster.ts`)
+    - Implement `readWrappedLines(textarea)`. Build a hidden mirror `<div>` with the textarea's computed font and content width, `white-space: pre-wrap`, and `overflow-wrap: break-word`. Group characters by `Range` client-rect top and return `string[]`. Remove the mirror afterward. Keep blank lines and the user's spaces. Do not trim
+    - Implement `rasterizeText(ctx, {rect, lines, style, fg, bg, mode, scale})`. It saves the context, scales by `scale`, and clips to `rect`. In `'opaque'` mode it fills `rect` with `bg` before any text. It sets `ctx.font` from `fontCss`, draws each line at `rect.y + i * lineHeight + halfLeading + ascent` with `fillStyle = fg` (ascent from `measureText().fontBoundingBoxAscent`, fallback 0.8 em), and draws one underline bar per line when `underline` is set. It restores the context. It never trims
+    - Implement `commitTextRegion(canvas, args)`, synchronous. Call `canvas.toCanvasElement(window.devicePixelRatio)`, run `rasterizeText` on its 2D context, call `canvas.clear()`, restore `backgroundColor = '#ffffff'`, and add one `FabricImage(element, {left: 0, top: 0, scaleX: 1 / scale, scaleY: 1 / scale, selectable: false, evented: false})`. Do not call `record()`. The caller does, once
+    - Use the device pixel ratio so a flatten on a high-DPI screen does not blur existing strokes (keeps the `paint-pencil-quality-degradation` fix)
+    - _Bug_Condition: isBugCondition(input) where input.event is Commit (vector `IText` commit, trimmed text)_
+    - _Expected_Behavior: Property 5 (commit is one raster history step) from design_
+    - _Preservation: Flatten matches the existing `floodFill` replace-with-one-image approach_
+    - _Requirements: 2.3, 2.4, 2.5, 2.7_
+
+  - [ ] 3.4 Write unit and property tests for the raster commit (`src/apps/paint/textRaster.test.ts`)
+    - Against a recording fake 2D context: Opaque issues one fill of the region rectangle before any text. Transparent issues none. There is one `fillText` per line. Underline adds one bar per line. The region is clipped. No line is trimmed. `fillStyle` is the foreground color for glyphs and the background color for the fill
+    - `commitTextRegion` with the jsdom canvas stub: afterward the Fabric canvas holds exactly one object, it is a `FabricImage`, and there is no `IText`. The function does not touch `HistoryStack`
+    - Property (`fast-check`): for random text with empty lines, leading and trailing spaces, and random styles, the number of `fillText` calls equals the number of lines, and the joined text equals the input with only wrap-consumed whitespace removed
+    - `readWrappedLines` needs layout, so jsdom cannot cover it. It is covered by Playwright in task 3.10. Leave a comment saying so
+    - Run `npx vitest --run src/apps/paint/textRaster.test.ts`
+    - _Requirements: 2.3, 2.4, 2.5, 2.7_
+
+  - [ ] 3.5 Add the region component (`src/apps/paint/TextRegion.tsx`)
+    - Render with `createPortal` into the Fabric wrapper element (`canvas.wrapperEl`), so the region uses canvas pixel coordinates and the old `offsetX - scrollLeft` and 2px surface-padding offset goes away
+    - Structure: wrapper `div.paint-text-region` (`data-testid="text-region"`) at `rect`, one transparent move strip per edge (`data-move`), 8 handle elements (`data-handle="nw"` and so on), and a multi-line `<textarea>`. Use `1px dotted` for the border and no form-input chrome. The textarea has no border, `resize: none`, `overflow: hidden`, `white-space: pre-wrap`, `overflow-wrap: break-word`, `padding: 0`, the style's font and line height, `color: fg`, and `background: bg` in Opaque mode or `transparent` otherwise
+    - Gestures: move strips and handles use pointer capture and call `preventDefault` on pointerdown so the textarea keeps focus. They call `moveRect` and `resizeRect`. The text rewraps on resize
+    - Growth: on input and on width change, set the height to `max(rect.h, textarea.scrollHeight)`, capped at the canvas bottom
+    - Keys: Enter inserts a newline (the default). Escape calls the commit handler selected by `ESCAPE_ACTION`
+    - Focus: focus the textarea with `preventScroll: true` when the region opens and after any Fonts toolbar change
+    - Mount no blur handler for commit. Commit must not depend on focus
+    - _Bug_Condition: isBugCondition(input) where input.event is PointerClickOnCanvas, Typing (overflow or Enter), MoveRegion, or ResizeRegion_
+    - _Expected_Behavior: Properties 3 and 4 (region, editing, wrapping) from design_
+    - _Preservation: tool activation and Fabric `mouse:down` dispatch are not changed_
+    - _Requirements: 2.2, 2.3, 2.6, 2.8_
+
+  - [ ] 3.6 Add the Fonts toolbar (`src/apps/paint/FontsToolbar.tsx`)
+    - Render a `role="toolbar"` element labelled "Fonts" (`.paint-fonts-toolbar`) with a family `<select>` (label "Font"), a size `<select>` (label "Font size"), and Bold, Italic, and Underline buttons with `aria-pressed`. Use the family and size lists from `textRegion.ts`
+    - Render it only while a region is open, as a floating panel positioned absolutely inside `.paint` (like `.paint-ai`), so it does not shift the layout under the pointer
+    - Buttons call `preventDefault` on mousedown so the textarea keeps focus. Selects return focus to the textarea after `onChange`
+    - Changes restyle all the text in the region and apply to the commit
+    - _Bug_Condition: isBugCondition(input) where input.event is FontChange_
+    - _Expected_Behavior: Property 4 (fonts restyle all text and the commit) from design_
+    - _Preservation: no change to the existing toolbar or tool grid layout_
+    - _Requirements: 2.4_
+
+  - [ ] 3.7 Wire state, colors, mode, and commit triggers into `Paint.tsx` and `paint.css`
+    - State: remove `textOverlay`, `textValue`, `textInputRef`, the old `commitText`, the `[tool]` cancel effect and its `eslint-disable`, and the `IText` import. Add `bgColor` (default `#ffffff`), `textMode` (default `'transparent'`), `textStyle` (default Arial 12 pt), and a `regionRef` as the source of truth for the open region (rect, text), with a state mirror for rendering
+    - `commitPending()`: return `false` when no region is open. For an empty region, close it without touching history. Otherwise read the lines with `readWrappedLines`, call `commitTextRegion` with the current `fg`, `bg`, mode, and style, close the region, and call `record()` once. It is idempotent and safe to call from any handler. Whitespace-only text counts as non-empty
+    - Gestures: in the Fabric `mouse:down`, `mouse:move`, and `mouse:up` handlers, the `text` branch calls `commitPending()` and records the press point. `mouse:move` updates a dotted rubber-band rectangle (`.paint-text-draft`). `mouse:up` calls `regionFromGesture` and opens the region. This is the path that commits an open region and starts a new one on the same gesture
+    - Outside-click commit: add `onPointerDownCapture` on the `.paint` root. While a region is open, a press outside `.paint-text-region`, `.paint-fonts-toolbar`, `.paint-text-options`, and `.paint-palette` calls `commitPending()`. Presses on the canvas itself are handled by the gesture branch above. Palette presses do not commit, and a left-click recolors the open text through `color`
+    - Explicit triggers: `selectTool(id)` calls `commitPending()` before `setTool`. `newDrawing`, `save`, the Save As button, the AI Automate button, and `generate` each call `commitPending()` first. `exportPng` also calls it as the single choke point, so every saved or exported image includes the text. After a commit marks the drawing dirty, `newDrawing` shows the "Discard unsaved changes" confirmation as for any edit
+    - Palette and colors: keep swatch `onClick` for the foreground. Add `onContextMenu` (with `preventDefault`) to set `bgColor`. Add a `.paint-colors` indicator with a foreground box over a background box, with `aria-label="Foreground color: #..."` and `"Background color: #..."`
+    - Text tool options: when `tool === 'text'`, render a `.paint-text-options` group under the tool grid with "Opaque" and "Transparent" buttons, each with `aria-pressed`. Changing the mode while a region is open updates the editor background at once
+    - Focus guards: keep the surface `onPointerDown` and `onMouseDown` guards that stop the `.paint` root from stealing focus. Retarget them from `.paint-text-input` to `.paint-text-region`, and skip root focus while a region is open. The Ctrl+Z and Ctrl+Y handler already ignores `INPUT` and `TEXTAREA`, so native undo works inside the region and the shortcuts still work with no region open
+    - Mount `TextRegion` and `FontsToolbar` while a region is open
+    - CSS in `src/apps/paint/paint.css`: remove `.paint-text-input`. Add `.paint-text-region`, `.paint-text-handle` (5px squares with resize cursors), `.paint-text-move`, `.paint-text-draft`, `.paint-fonts-toolbar`, `.paint-text-options`, and `.paint-colors`
+    - Do not change the eraser, fill, shapes, or `runAutomate`. The eraser keeps painting white (TD-2)
+    - _Bug_Condition: isBugCondition(input) where input.tool = 'text' and any of the 1.1 to 1.9 events_
+    - _Expected_Behavior: expectedBehavior(result) from design (Properties 3, 4, 5, 6)_
+    - _Preservation: Preservation Requirements from design (other tools, history, save and load, AI Automate, left-click palette, shortcuts)_
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
+
+  - [ ] 3.8 Write unit tests for the `Paint.tsx` wiring
+    - Test `commitPending` through the exported testable surface or a component test using the jsdom canvas stub: with no region it returns `false` and `HistoryStack.undoDepth` is unchanged. With an empty region it closes the region and `undoDepth` is unchanged. With text it adds exactly one entry. A second call adds none
+    - Test that `ESCAPE_ACTION` selects commit or discard
+    - Test that left-click on a swatch changes only `color`, and right-click changes only `bgColor` and calls `preventDefault`
+    - Run `npx vitest --run src/apps/paint`
+    - _Requirements: 2.5, 2.7, 2.8, 2.9_
+
+  - [ ] 3.9 Rewrite `e2e/paint-text-tool.spec.ts`
+    - The current file asserts `.paint-text-input`, Enter to commit, and cancel on Escape and tool switch, so it encodes the defective behavior. Rewrite it and do not patch it. Keep `countDarkPixels`, `openPaintWithText`, and the `paintCanvas` and `paintUpper` locators. Replace the `textInput` locator with `text-region` and its `textarea`
+    - Move the exploration cases from `e2e/paint-text-tool-win98.explore.spec.ts` into a "bug condition" describe block in the rewritten file **without changing their assertions**. Then delete `e2e/paint-text-tool-win98.explore.spec.ts`
+    - Old test mapping:
+      - Clicking the canvas opens a focused text box that stays open: keep, retarget to the region textarea
+      - Slow click leaves the text box open and focused: keep, retarget
+      - Typing and Enter draws text: replace with type, then click outside to commit. Enter now inserts a newline
+      - Clicking inside the open text box keeps it open: keep, retarget to the textarea
+      - Clicking elsewhere on the canvas commits: keep, and assert that a new region opens at the new point (2.10)
+      - Escape cancels and draws nothing: invert to Escape commits, in a group named "assumption". Add an empty-region Escape that leaves pixels and history unchanged
+      - Switching tools cancels: invert to switching tools commits
+    - New cases:
+      - Region: drag matches the drag within 1 px, with a dotted border, 8 handles, and a focused textarea. Click creates the default-size region at the click point. A drag past the canvas edge is clamped (2.1, 2.2)
+      - Move and resize: drag the border and the `se` handle and the region follows. After commit the pixels are at the new location and not the old one. Narrowing the region increases the row count (2.6)
+      - Wrap and Enter: long text wraps within the region width and Enter makes a new line, checked on committed pixel rows. This also covers `readWrappedLines` (2.3)
+      - Fonts toolbar: absent with no region, present with one. Bold raises the dark pixel count for the same text. Underline adds a pixel row under the text. A larger size raises the text height. A different family changes the pixels (2.4)
+      - Mode and colors: Transparent is pressed by default. Fill red, commit transparent, and the corner pixel stays red. Opaque with a right-clicked blue swatch gives a blue corner. Left-click sets only the foreground and right-click only the background, and the indicators show both. A palette click with a region open does not commit (2.5)
+      - Raster, one step: after commit no region and no input remain. One Undo removes all the text and Redo restores it. The status bar shows the dirty marker (2.7)
+      - Empty region: open and close with no text. The Undo button state and the pixels are unchanged (2.8)
+      - Triggers: click outside, a click on the toolbox, tool switch, and Escape each commit. Save As... leaves the text in the saved PNG, confirmed by reopening it. New with an open region commits and then shows the discard confirmation. AI Automate commits when its dialog opens (2.8, 2.9)
+      - Gesture continuity: pressing elsewhere on the canvas commits the open region and starts a new region on that same press (2.10)
+    - Keep the focus-guard cases from `add-text-button-not-working` valid against the region
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
+
+  - [ ] 3.10 Update `FUNCTIONALITY.md` and `docs/TECH_DEBT.md`
+    - In the Paint section of `FUNCTIONALITY.md` (the Text tool bullet near line 39), replace the old single-line, Enter-to-commit, Escape-cancels text with the Windows 98 behavior from the design:
+      - Text tool: drag on the canvas to draw a text region, or click for a default-size one. Type directly into the region. Text wraps at the right edge and Enter starts a new line. Drag the border to move the region and drag the handles to resize it. A Fonts toolbar (font, size, Bold, Italic, Underline) appears while a region is open
+      - Text background: choose Opaque or Transparent in the tool options below the tools. Left-click a palette swatch for the foreground (text) color and right-click for the background color. Opaque fills the region with the background color
+      - Commit: text becomes part of the picture when you click outside the region, switch tools, press Escape, or use Save, Save As..., New, or AI Automate. Undo removes the whole text in one step
+      - Limitations: the Fonts toolbar always shows with an open region because Paint has no menu bar, the eraser still paints white whatever the background color is, and the font list is fixed
+    - In `docs/TECH_DEBT.md`, add one row (next free `TD-n`) saying the eraser ignores the new background color, extending TD-2. Fill in the columns the file uses (item, reason, what ends it). Do not change any other row
+    - Run `npm run check-docs` and confirm it still passes
+    - _Requirements: 2.4, 2.5, 2.7, 2.8_
+
+  - [ ] 3.11 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Text Tool Behaves Like Windows 98 Paint
+    - **IMPORTANT**: Re-run the SAME tests from task 1. Do NOT write new tests.
+    - These tests now live in the "bug condition" block of `e2e/paint-text-tool.spec.ts` (moved in task 3.9 with their assertions unchanged). They encode the expected behavior
+    - Run `npx playwright test e2e/paint-text-tool.spec.ts -g "bug condition"`
+    - **EXPECTED OUTCOME**: The tests PASS. This confirms the bug is fixed.
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
+
+  - [ ] 3.12 Verify preservation tests still pass
+    - **Property 2: Preservation** - Behavior Outside the Text Tool Is Unchanged
+    - **IMPORTANT**: Re-run the SAME tests from task 2. Do NOT write new tests.
+    - Run `src/apps/paint/textToolPreservation.test.ts`, the existing Vitest suites listed in task 2, `e2e/paint-text-preservation.spec.ts`, and the existing e2e specs listed in task 2
+    - **EXPECTED OUTCOME**: The tests PASS. This confirms no regressions.
+    - Confirm all tests still pass after the fix
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - Run `npm run typecheck`, `npm run lint`, `npm test` (docs check, scope check, Vitest), and the full `npm run e2e`
+  - Confirm `npm run check-scope` accepts the new files under `src/apps/paint/`
+  - Record the run in `docs/TEST_RESULTS.md` with `npm run record-results`, which only writes after green Vitest and Playwright runs
+  - Ensure all tests pass, ask the user if questions arise. Raise the open items from the design for review: Escape commits (2.8), the new background color scope that leaves the eraser white (2.5), the always-visible Fonts toolbar with no menu bar (2.4), and the default region and threshold values
