@@ -18,16 +18,3 @@
 .paint-ai-overlay { position: absolute; inset: 0; z-index: 10; cursor: progress; background: rgba(192, 192, 192, 0.4); }
 
 .paint:focus { outline: none; }
-
-.paint-text-input {
-  position: absolute;
-  min-width: 80px;
-  font-family: sans-serif;
-  font-size: 16px;
-  background: transparent;
-  border: 1px dashed #000080;
-  outline: none;
-  padding: 0 2px;
-  z-index: 5;
-  caret-color: currentColor;
-}
