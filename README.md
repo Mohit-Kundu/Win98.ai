@@ -95,7 +95,7 @@ npm start
 
 - **File Explorer:** folder tree, create, rename, move, delete (to the Recycle Bin), properties, upload, AI natural-language search, AI auto-organize.
 - **Recycle Bin:** deleted files and folders land here from Explorer, CMD and Clippy. Restore, delete permanently, or empty it. Applications cannot be deleted ("System Applications cannot be deleted"); they appear as read-only shortcuts in `C:\Program Files`.
-- **Paint:** pencil, brush, eraser, line, rectangle, ellipse, fill (flood fill), text, palette, undo/redo, PNG save, AI image generation.
+- **Paint:** pencil, brush, eraser, line, rectangle, ellipse, fill (flood fill), palette, undo/redo, PNG save, AI image generation.
 - **WordPad:** rich text (bold, italic, underline, bullet list), images, undo/redo, AI write and rewrite.
 - **CMD:** `dir`, `cd`, `mkdir`, `del`, `rd`, `restore`, `cls`, `help`, plus `ai <instruction>` and `nl on` for natural-language commands.
 - **PDF preview:** read-only page rendering.
