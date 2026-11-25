@@ -66,6 +66,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - While idle, Clippy plays a random idle animation every 6 to 12 seconds. The atom animation (`IdleAtom`) is disabled.
 - Clippy plays Alert when a step fails or is declined, and Congratulate when a run finishes with at least one successful step and no failures.
 - Clippy plays a tool-specific animation while a tool runs: Writing for document tools, GetArtsy for drawing and image tools, Searching for `search_files`, and EmptyTrash for `delete_node`. A successful step plays Save for tools that change stored data and Congratulate otherwise. The mapping is in `src/apps/clippy/toolAnimations.ts`.
+- Clippy's replies are plain text. The system prompt forbids emojis, and `stripEmoji()` in `src/apps/clippy/Clippy.tsx` removes any that the model still returns.
 - Small talk gets an instant local reply with no AI call: greetings (hi, hello, hey, good morning, good day, good evening), thanks, goodbye (bye, bye bye, see you soon), praise (good job, nice), "what can you do" or "help" (with example prompts), "who are you", ok or okay, and lol. A reply is picked at random from 3 to 5 short, direct assistant-style variants, with a matching animation. The match is strict: the whole message must be the phrase (punctuation and case ignored), so "hi, create a folder" goes to the AI. Small talk exchanges show in the chat but are not sent to the AI as history. Phrases and replies are in `src/apps/clippy/smallTalk.ts`.
 - Gets minimal context about the focused app, folder and selection.
 - Performs multi-step requests with real tool calls, up to 10 per run.
@@ -77,6 +78,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - Express server that holds the Gemini API key and forwards requests. The key never reaches the browser.
 - Endpoints: `/api/health`, `/chat`, `/generate-image`, `/metadata`, `/search-query`, `/organize`, `/text-transform`.
 - Request validation, 10 MB body limit, 30 second timeout, structured errors.
+- Selectable AI provider: OpenRouter (default) or Gemini, chosen with `AI_PROVIDER`.
 - Mock_Gemini mode (`MOCK_GEMINI=1`) for offline demos and tests. Disabled in `npm start`.
 - Terminal logging (`LOG_LEVEL`): request start, end and duration, Gemini latency and errors. The browser forwards orchestrator steps, tool results, VFS write errors and ErrorBoundary catches through `POST /api/log`, so they appear in the same terminal.
 

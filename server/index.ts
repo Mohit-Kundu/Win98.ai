@@ -1,6 +1,7 @@
 import express from 'express';
 import type { Express, NextFunction, Request, RequestHandler, Response } from 'express';
 import { createGeminiClientFromEnv } from './gemini.js';
+import { createOpenRouterClientFromEnv } from './openrouter.js';
 import type { GeminiClient } from './geminiClient.js';
 import { createApiRouter, sendError } from './routes/api.js';
 import type { ApiOptions } from './routes/api.js';
@@ -67,6 +68,16 @@ export function createApp(opts: AppOptions): Express {
   return app;
 }
 
+export type AiProvider = 'gemini' | 'openrouter';
+
+/** Reads AI_PROVIDER. Defaults to openrouter. An unknown value throws so a typo cannot silently pick a provider. */
+export function resolveProvider(env: NodeJS.ProcessEnv = process.env): AiProvider {
+  const v = env.AI_PROVIDER?.trim().toLowerCase();
+  if (!v || v === 'openrouter') return 'openrouter';
+  if (v === 'gemini') return 'gemini';
+  throw new Error('AI_PROVIDER must be "gemini" or "openrouter".');
+}
+
 export interface Selection {
   gemini: GeminiClient | null;
   middleware: RequestHandler[];
@@ -85,16 +96,19 @@ export async function selectGeminiClient(
     const mock = await import('./mockGemini.js');
     return { gemini: mock.createMockGeminiClient(), middleware: [mock.mockRequestMiddleware] };
   }
-  return { gemini: createGeminiClientFromEnv(env), middleware: [] };
+  const client = resolveProvider(env) === 'openrouter' ? createOpenRouterClientFromEnv(env) : createGeminiClientFromEnv(env);
+  return { gemini: client, middleware: [] };
 }
 
 export async function startServer(port = Number(process.env.PORT) || DEFAULT_PORT) {
   const { gemini, middleware } = await selectGeminiClient();
   const mocked = process.env.MOCK_GEMINI === '1' && gemini !== null && middleware.length > 0;
+  const provider = resolveProvider();
+  const keyName = provider === 'openrouter' ? 'OPENROUTER_API_KEY' : 'GEMINI_API_KEY';
   const app = createApp({ gemini, middleware });
   return app.listen(port, () => {
     log.info(
-      `AI proxy listening on http://localhost:${port} (AI ${gemini ? (mocked ? 'enabled: MOCK_GEMINI' : 'enabled') : 'disabled: GEMINI_API_KEY not set'})`,
+      `AI proxy listening on http://localhost:${port} (AI ${gemini ? (mocked ? 'enabled: MOCK_GEMINI' : `enabled: ${provider}`) : `disabled: ${keyName} not set`})`,
     );
   });
 }
