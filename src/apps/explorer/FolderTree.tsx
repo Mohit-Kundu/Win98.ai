@@ -1,9 +1,21 @@
 import { useState } from 'react';
 import { useFolder } from '../../actions/vfsHooks';
-import { Icon } from '../../desktop/icons';
+import { Icon, type IconName } from '../../desktop/icons';
+import { listApps } from '../../desktop/appRegistry';
+import { shortcutName } from '../../actions/appShortcuts';
 import { iconFor } from './fileTypes';
 
-function TreeNode({ id, name, selectedId, onSelect, defaultOpen }: {
+/** Application shortcuts use their desktop icon; other files use the type icon. */
+function treeIconFor(node: Parameters<typeof iconFor>[0] & { name: string }) {
+  if (node.ext === 'lnk') {
+    const app = listApps().find((a) => shortcutName(a.title).toLowerCase() === node.name.toLowerCase());
+    if (app) return app.icon;
+  }
+  return iconFor(node);
+}
+
+function TreeNode({ id, name, selectedId, onSelect, defaultOpen, icon = 'folder' }: {
+  icon?: IconName;
   id: string;
   name: string;
   selectedId: string | null;
@@ -24,7 +36,7 @@ function TreeNode({ id, name, selectedId, onSelect, defaultOpen }: {
         className={`explorer-tree-label${selectedId === id ? ' selected' : ''}`}
         onClick={() => onSelect(id)}
       >
-        <Icon name="folder" size={16} /> {name}
+        <Icon name={icon} size={16} /> {name}
       </button>
       {open && children.length > 0 && (
         <ul role="group">
@@ -34,7 +46,7 @@ function TreeNode({ id, name, selectedId, onSelect, defaultOpen }: {
           {files.map((f) => (
             <li key={f.id} role="treeitem" aria-selected={false}>
               <span className="explorer-tree-file">
-                <Icon name={iconFor(f)} size={16} /> {f.name}
+                <Icon name={treeIconFor(f)} size={16} /> {f.name}
               </span>
             </li>
           ))}
@@ -52,7 +64,7 @@ export function FolderTree({ rootId, selectedId, onSelect }: {
 }) {
   return (
     <ul className="tree-view explorer-tree" role="tree" aria-label="Folders">
-      <TreeNode id={rootId} name="C:\" selectedId={selectedId} onSelect={onSelect} defaultOpen />
+      <TreeNode id={rootId} name="C:\" selectedId={selectedId} onSelect={onSelect} defaultOpen icon="drive" />
     </ul>
   );
 }

@@ -1,9 +1,17 @@
 import type { ReactElement } from 'react';
 
 /** Small local retro icon set (inline SVG, no dependency). */
-export type IconName = 'folder' | 'paint' | 'document' | 'terminal' | 'assistant' | 'app' | 'recycleBinEmpty' | 'recycleBinFull';
+export type IconName = 'folder' | 'paint' | 'document' | 'terminal' | 'assistant' | 'app' | 'recycleBinEmpty' | 'recycleBinFull' | 'drive';
 
 const shapes: Record<IconName, ReactElement> = {
+  drive: (
+    <>
+      <path d="M2 14l4-6h20l4 6z" fill="#e0e0e0" stroke="#000" />
+      <rect x="2" y="14" width="28" height="10" fill="#c0c0c0" stroke="#000" />
+      <path d="M3 15h26" stroke="#fff" />
+      <rect x="22" y="18" width="4" height="2" fill="#00c000" stroke="#000" />
+    </>
+  ),
   folder: (
     <>
       <path d="M2 8h10l2 3h16v16H2z" fill="#ffd84d" stroke="#000" />

@@ -11,7 +11,7 @@ export interface AppShortcutDeps {
 const PROGRAM_FILES = 'C:\\Program Files';
 
 /** File-name-safe version of an app title. */
-const shortcutName = (title: string): string => `${title.replace(/[\\/:*?"<>|]/g, '').trim() || 'Application'}.lnk`;
+export const shortcutName = (title: string): string => `${title.replace(/[\\/:*?"<>|]/g, '').trim() || 'Application'}.lnk`;
 
 /**
  * Makes sure C:\Program Files holds one read-only shortcut per registered application, so Explorer,
