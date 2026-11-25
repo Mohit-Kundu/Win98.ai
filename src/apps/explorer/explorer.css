@@ -37,6 +37,20 @@
   all: unset;
   cursor: default;
 }
+.explorer-tree-label,
+.explorer-tree-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.explorer-tree-label > img,
+.explorer-tree-label > svg,
+.explorer-tree-file > img,
+.explorer-tree-file > svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
 .explorer-tree-toggle {
   display: inline-block;
   width: 12px;

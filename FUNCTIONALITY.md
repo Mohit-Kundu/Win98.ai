@@ -26,7 +26,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - Deleted files are not searched, indexed, analyzed by AI or offered by "Organize with AI...". The bin folder itself is hidden in Explorer.
 
 ### File Explorer
-- Folder tree and file list.
+- Folder tree (folders and files, each with a type icon) and file list.
 - New folder, rename (F2), move, delete (Delete key, with confirmation; moves to the Recycle Bin), properties, open (Enter or double-click).
 - Shows `C:\Program Files` as read-only. Deleting an application shortcut there shows "System Applications cannot be deleted".
 - Upload files from the host machine, with an overwrite prompt.
