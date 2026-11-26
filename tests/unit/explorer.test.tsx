@@ -173,7 +173,9 @@ describe('Explorer', () => {
     expect(txtRow.textContent).toContain('Text Document');
     expect(screen.getByText(/result\(s\)/).textContent).toContain('2 result(s)');
 
-    fireEvent.change(screen.getByLabelText('File type'), { target: { value: 'txt' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /File type/ }));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Text' }));
     fireEvent.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() => expect(within(screen.getByRole('list', { name: 'Search results' })).getAllByRole('listitem')).toHaveLength(1));
 
@@ -199,7 +201,7 @@ describe('Explorer', () => {
     await openDesktopFolder();
     await screen.findByRole('option', { name: /go\.txt/ });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Organize with AI...' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Organize with AI' }));
     let dlg = await screen.findByRole('dialog', { name: 'Organize with AI' });
     expect(within(dlg).getByLabelText('Destination for go.txt')).toBeTruthy();
     expect(dlg.textContent).toContain('(new folder)');
@@ -207,7 +209,7 @@ describe('Explorer', () => {
     expect((await actions.readMetadata({ path: 'C:\\Desktop\\go.txt' })).ok).toBe(true);
     expect((await actions.readMetadata({ path: 'C:\\Desktop\\keep.txt' })).ok).toBe(true);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Organize with AI...' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Organize with AI' }));
     dlg = await screen.findByRole('dialog', { name: 'Organize with AI' });
     fireEvent.click(within(dlg).getByLabelText('Move keep.txt'));
     fireEvent.click(within(dlg).getByText('Move 1 file(s)'));
@@ -222,7 +224,7 @@ describe('Explorer', () => {
     await mkFile('C:\\Desktop\\solo.txt');
     vi.spyOn(aiClient, 'organize').mockResolvedValue({ ok: false, error: { code: 'AI_UNAVAILABLE', message: 'AI is down.' } });
     await openDesktopFolder();
-    fireEvent.click(screen.getByRole('button', { name: 'Organize with AI...' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Organize with AI' }));
     expect((await screen.findByRole('dialog', { name: 'Explorer' })).textContent).toContain('AI is down.');
     expect((await actions.readMetadata({ path: 'C:\\Desktop\\solo.txt' })).ok).toBe(true);
   });

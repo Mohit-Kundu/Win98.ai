@@ -7,13 +7,19 @@
 }
 .explorer-toolbar {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 4px;
-  padding: 2px;
+  padding: 8px 2px;
 }
 .explorer-path {
-  flex: 1;
-  margin-left: 6px;
+  order: 3;
+  flex: 2 1 0;
+  min-width: 80px;
+  box-sizing: border-box;
+  height: 24px;
+  display: flex;
+  align-items: center;
   padding: 2px 4px;
   background: #fff;
   box-shadow: inset -1px -1px #fff, inset 1px 1px grey;
@@ -79,15 +85,20 @@
   top: 0;
 }
 .explorer-search {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  padding: 2px;
+  display: contents;
+}
+.explorer-search > :not(.explorer-filter-wrap) {
+  order: 3;
 }
 .explorer-search input[type='search'] {
-  flex: 1;
-  min-width: 160px;
+  flex: 1 1 0;
+  min-width: 80px;
+  box-sizing: border-box;
+  height: 24px;
+}
+.explorer-filter-wrap {
+  position: relative;
+  order: 1;
 }
 .explorer-row.explorer-result {
   grid-template-columns: 20px minmax(100px, 1.5fr) minmax(80px, 1.5fr) 120px minmax(100px, 2fr) 56px;
@@ -157,4 +168,64 @@
 }
 .organize-new {
   color: #000080;
+}
+.explorer-filter-pop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+  min-width: 130px;
+  background: silver;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+.explorer-menu-item {
+  position: relative;
+}
+.explorer-filter-pop button,
+.explorer-filter-sub button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 3px 8px;
+  text-align: left;
+  white-space: nowrap;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.explorer-filter-sub button {
+  justify-content: flex-start;
+}
+.explorer-filter-sub button span {
+  display: inline-block;
+  width: 10px;
+}
+.explorer-filter-pop button:hover,
+.explorer-filter-pop button[aria-expanded='true'] {
+  background: navy;
+  color: #fff;
+}
+.explorer-filter-sub {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  padding: 2px;
+  background: silver;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+.explorer-tool-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 10px;
+  margin-right: 4px;
+  white-space: nowrap;
 }

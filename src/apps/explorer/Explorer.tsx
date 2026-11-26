@@ -22,6 +22,7 @@ import { FileList } from './FileList';
 import { joinPath } from './fileTypes';
 import { OrganizeProposalDialog } from './OrganizeProposalDialog';
 import { FolderTree } from './FolderTree';
+import { NewFolderIcon, OrganizeIcon, UploadIcon } from './ToolbarIcons';
 import { PropertiesDialog } from './PropertiesDialog';
 import { SearchBar, type SearchFilterValues } from './SearchBar';
 import { SearchResults } from './SearchResults';
@@ -212,14 +213,17 @@ export function Explorer({ windowId, launchArgs }: AppProps) {
   return (
     <div className="explorer">
       <div className="explorer-toolbar">
-        <button type="button" onClick={() => setModal({ kind: 'newFolder' })}>
-          New Folder
+        <button type="button" className="explorer-tool-btn" onClick={() => setModal({ kind: 'newFolder' })}>
+          <NewFolderIcon />
+          <span>New Folder</span>
         </button>
-        <button type="button" onClick={() => fileInput.current?.click()}>
-          Upload...
+        <button type="button" className="explorer-tool-btn" onClick={() => fileInput.current?.click()}>
+          <UploadIcon />
+          <span>Upload</span>
         </button>
-        <button type="button" disabled={organizing} onClick={() => void startOrganize()}>
-          {organizing ? 'Organizing...' : 'Organize with AI...'}
+        <button type="button" className="explorer-tool-btn" disabled={organizing} onClick={() => void startOrganize()}>
+          <OrganizeIcon />
+          <span>{organizing ? 'Organizing...' : 'Organize with AI'}</span>
         </button>
         <input
           ref={fileInput}
@@ -232,8 +236,8 @@ export function Explorer({ windowId, launchArgs }: AppProps) {
         <span className="explorer-path" aria-label="Current folder">
           {folderPath}
         </span>
+        <SearchBar busy={searching} active={search !== null} onSearch={(q, f) => void runSearch(q, f)} onClear={clearSearch} />
       </div>
-      <SearchBar busy={searching} active={search !== null} onSearch={(q, f) => void runSearch(q, f)} onClear={clearSearch} />
       <div className="explorer-body">
         {rootId && (
           <div className="explorer-tree-pane sunken-panel">

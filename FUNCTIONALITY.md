@@ -23,7 +23,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - The Recycle Bin window lists name, original location, date deleted, type and size. Toolbar and right-click: Restore, Delete Permanently (asks first) and Empty Recycle Bin (asks first).
 - Restore puts the item back where it was. If that folder no longer exists, it goes to `C:\Desktop`. If the name is taken, it is restored as `name (restored).ext`. A message says where it went.
 - Only items directly in the bin can be restored or deleted permanently. Deleting an item that is already in the bin removes it for good.
-- Deleted files are not searched, indexed, analyzed by AI or offered by "Organize with AI...". The bin folder itself is hidden in Explorer.
+- Deleted files are not searched, indexed, analyzed by AI or offered by "Organize with AI". The bin folder itself is hidden in Explorer.
 
 ### File Explorer
 - Folder tree (drive, folders and files, each with an icon; app shortcuts use their desktop icon) and file list.
@@ -32,7 +32,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - Upload files from the host machine, with an overwrite prompt.
 - AI metadata for files (title, description, category), with "Retry analysis".
 - Natural-language search (for example by topic, type or date) over file names and AI metadata, including PDF text.
-- "Organize with AI...": proposes moves from names and metadata only (never file content). You can uncheck or edit rows before applying.
+- "Organize with AI": proposes moves from names and metadata only (never file content). You can uncheck or edit rows before applying.
 
 ### Paint
 - Tools: pencil, brush, eraser, line, rectangle, ellipse, fill (flood fill).
