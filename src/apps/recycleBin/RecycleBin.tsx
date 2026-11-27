@@ -25,6 +25,10 @@ export function RecycleBin() {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [modal, setModal] = useState<Modal | null>(null);
 
+  const [draft, setDraft] = useState('');
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const shown = q ? items.filter((e) => e.originalName.toLowerCase().includes(q) || (e.originalFolder ?? '').toLowerCase().includes(q)) : items;
   const selected = items.find((e) => e.node.id === selectedId) ?? null;
 
   useEffect(() => {
@@ -68,13 +72,29 @@ export function RecycleBin() {
     <div className="bin">
       <div className="bin-toolbar">
         <button type="button" disabled={!selected} onClick={() => selected && void restore(selected)}>
+          <BtnIcon kind="restore" />
           Restore
         </button>
         <button type="button" disabled={!selected} onClick={() => selected && askPurge(selected)}>
+          <BtnIcon kind="delete" />
           Delete Permanently
         </button>
         <button type="button" disabled={items.length === 0} onClick={() => setModal({ kind: 'empty' })}>
+          <BtnIcon kind="empty" />
           Empty Recycle Bin
+        </button>
+        <input
+          type="search"
+          className="bin-search"
+          aria-label="Search deleted items"
+          placeholder="Search..."
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && setQuery(draft)}
+        />
+        <button type="button" onClick={() => setQuery(draft)}>
+          <BtnIcon kind="search" />
+          Search
         </button>
       </div>
       <div className="bin-list sunken-panel" role="listbox" aria-label="Deleted items" tabIndex={0} onKeyDown={onKeyDown} onMouseDown={() => setSelectedId(null)}>
@@ -86,7 +106,7 @@ export function RecycleBin() {
           <span>Type</span>
           <span>Size</span>
         </div>
-        {items.map((e) => (
+        {shown.map((e) => (
           <div
             key={e.node.id}
             role="option"
@@ -113,9 +133,10 @@ export function RecycleBin() {
           </div>
         ))}
         {items.length === 0 && <p className="bin-empty">The Recycle Bin is empty.</p>}
+        {items.length > 0 && shown.length === 0 && <p className="bin-empty">No items match your search.</p>}
       </div>
       <div className="status-bar">
-        <p className="status-bar-field">{items.length} object(s)</p>
+        <p className="status-bar-field">{shown.length} object(s)</p>
       </div>
 
       {menu && selected && (
@@ -169,5 +190,31 @@ function BinMenu({ x, y, onRestore, onPurge, onClose }: { x: number; y: number; 
       </li>
     </ul>,
     document.body,
+  );
+}
+
+function BtnIcon({ kind }: { kind: 'restore' | 'delete' | 'empty' | 'search' }) {
+  return (
+    <svg className="bin-btn-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      {kind === 'restore' && (
+        <>
+          <path d="M2 4h5l1 1h6v8H2z" fill="#ffd84a" stroke="#000" />
+          <path d="M8 12V8M6 10l2-2 2 2" fill="none" stroke="#008000" strokeWidth="1.5" />
+        </>
+      )}
+      {kind === 'search' && (
+        <>
+          <circle cx="6.5" cy="6.5" r="4" fill="#fff" stroke="#000" strokeWidth="1.5" />
+          <path d="M9.5 9.5L14 14" stroke="#000" strokeWidth="2" />
+        </>
+      )}
+      {kind === 'delete' && <path d="M3 3l10 10M13 3L3 13" stroke="#c00000" strokeWidth="2.5" fill="none" />}
+      {kind === 'empty' && (
+        <>
+          <path d="M4 5h8l-1 9H5z" fill="#c0c0c0" stroke="#000" />
+          <path d="M3 4h10M6 4V2h4v2M7 7v5M9 7v5" fill="none" stroke="#000" />
+        </>
+      )}
+    </svg>
   );
 }

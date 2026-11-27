@@ -20,7 +20,7 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 
 ### Recycle Bin
 - Deleting a file or folder in Explorer, with CMD `del` or `rd`, or through Clippy's `delete_node` moves it to the Recycle Bin instead of removing it.
-- The Recycle Bin window lists name, original location, date deleted, type and size. Toolbar and right-click: Restore, Delete Permanently (asks first) and Empty Recycle Bin (asks first).
+- The Recycle Bin window lists name, original location, date deleted, type and size. A search box and Search button at the right of the toolbar filter the list by name or original folder. Toolbar buttons show a small icon left of their label. Toolbar and right-click: Restore, Delete Permanently (asks first) and Empty Recycle Bin (asks first).
 - Restore puts the item back where it was. If that folder no longer exists, it goes to `C:\Desktop`. If the name is taken, it is restored as `name (restored).ext`. A message says where it went.
 - Only items directly in the bin can be restored or deleted permanently. Deleting an item that is already in the bin removes it for good.
 - Deleted files are not searched, indexed, analyzed by AI or offered by "Organize with AI". The bin folder itself is hidden in Explorer.

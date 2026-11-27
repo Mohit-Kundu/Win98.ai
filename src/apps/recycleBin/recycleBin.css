@@ -66,3 +66,20 @@
   background: #000080;
   color: #fff;
 }
+.bin-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.bin-btn-icon {
+  flex: none;
+}
+.bin-toolbar button:disabled .bin-btn-icon {
+  opacity: 0.5;
+}
+.bin-toolbar > .bin-search {
+  margin-left: auto;
+  width: 360px;
+  height: 23px;
+  box-sizing: border-box;
+}
