@@ -7,17 +7,16 @@
 }
 .explorer-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: 4px;
   padding: 8px 2px;
 }
 .explorer-path {
   order: 3;
   flex: 2 1 0;
-  min-width: 80px;
+  min-width: 40px;
   box-sizing: border-box;
-  height: 24px;
   display: flex;
   align-items: center;
   padding: 2px 4px;
@@ -92,12 +91,15 @@
 }
 .explorer-search input[type='search'] {
   flex: 1 1 0;
-  min-width: 80px;
+  min-width: 40px;
   box-sizing: border-box;
-  height: 24px;
+  height: auto;
+  align-self: stretch;
 }
 .explorer-filter-wrap {
+  display: flex;
   position: relative;
+  flex: none;
   order: 1;
 }
 .explorer-row.explorer-result {
@@ -221,9 +223,10 @@
 }
 .explorer-tool-btn {
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
+  flex: none;
   min-width: 0;
   padding: 6px 10px;
   margin-right: 4px;
