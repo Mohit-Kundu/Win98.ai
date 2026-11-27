@@ -56,7 +56,8 @@
   background: #fff;
   padding: 6px 8px;
   box-shadow: inset -1px -1px #fff, inset 1px 1px grey;
-  font-size: 13px;
+  font-family: 'Times New Roman', serif;
+  font-size: 10pt;
 }
 .wp-page .ProseMirror {
   min-height: 100%;
@@ -105,4 +106,164 @@
   justify-content: flex-end;
   gap: 4px;
   margin-top: 4px;
+}
+
+.wp-ruler {
+  height: 16px;
+  overflow: hidden;
+  padding: 0 8px;
+  background: #c0c0c0;
+  user-select: none;
+}
+.wp-ruler-scale {
+  position: relative;
+  height: 100%;
+  background: #fff;
+  box-shadow: inset 1px 1px grey, inset -1px -1px #fff;
+}
+.wp-ruler-ticks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.wp-ruler-marker {
+  position: absolute;
+  bottom: 0;
+  width: 9px;
+  height: 9px;
+  margin: 0 -4px;
+  background: #c0c0c0;
+  clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 100%, 0 50%);
+  border-bottom: 1px solid #000;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.wp-ruler-marker-right {
+  margin: 0 -4px;
+}
+.wp-ruler-tick {
+  position: absolute;
+  bottom: 3px;
+  width: 1px;
+  background: #000;
+}
+.wp-ruler-half {
+  height: 6px;
+}
+.wp-ruler-quarter {
+  height: 4px;
+}
+.wp-ruler-eighth {
+  height: 2px;
+}
+.wp-ruler-num {
+  position: absolute;
+  top: 1px;
+  transform: translateX(-50%);
+  font-size: 9px;
+  line-height: 12px;
+}
+
+.wp-font {
+  width: 160px;
+}
+.wp-font-size {
+  width: 48px;
+}
+.wp-toolbar button[aria-label='Bold'],
+.wp-toolbar button[aria-label='Italic'],
+.wp-toolbar button[aria-label='Underline'] {
+  width: 23px;
+  height: 22px;
+  min-width: 23px;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1;
+}
+.wp-toolbar button[aria-label='Bold'] {
+  font-weight: 900;
+}
+.wp-toolbar button[aria-label='Italic'] {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 14px;
+}
+.wp-toolbar button[aria-label='Underline'] {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.wp-toolbar button[aria-label='Undo'],
+.wp-toolbar button[aria-label='Redo'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 22px;
+  min-width: 23px;
+  padding: 0;
+  color: #000080;
+}
+.wp-toolbar button[aria-label='Undo']:disabled,
+.wp-toolbar button[aria-label='Redo']:disabled {
+  color: grey;
+}
+.wp-toolbar button:disabled .wp-arrow {
+  filter: drop-shadow(1px 1px 0 #fff);
+}
+
+.wp-toolbar .wp-menu > button {
+  width: 130px;
+  height: 21px;
+  min-height: 0;
+  padding: 3px 32px 3px 4px;
+  text-align: left;
+  color: #000;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='17' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15 0H0v16h1V1h14V0z' fill='%23DFDFDF'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M2 1H1v14h1V2h12V1H2z' fill='%23fff'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M16 17H0v-1h15V0h1v17z' fill='%23000'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15 1h-1v14H1v1h14V1z' fill='gray'/%3E%3Cpath fill='silver' d='M2 2h12v13H2z'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M11 6H4v1h1v1h1v1h1v1h1V9h1V8h1V7h1V6z' fill='%23000'/%3E%3C/svg%3E");
+  background-position: top 2px right 2px;
+  background-repeat: no-repeat;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px grey, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wp-toolbar .wp-menu-list {
+  min-width: 180px;
+}
+.wp-style-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.wp-style-check {
+  display: inline-block;
+  width: 14px;
+  font-size: 11px;
+}
+.wp-style-1 {
+  font-size: 24px;
+  font-weight: bold;
+}
+.wp-style-2 {
+  font-size: 18px;
+  font-weight: bold;
+}
+.wp-style-3 {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.wp-toolbar button[aria-label='Bullet list'],
+.wp-toolbar button[aria-label='Numbered list'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 22px;
+  min-width: 23px;
+  padding: 0;
+  color: #000;
 }

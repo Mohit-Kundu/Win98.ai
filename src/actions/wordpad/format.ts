@@ -1,4 +1,4 @@
-import { getSchema, Node as TipTapNode, mergeAttributes, type JSONContent } from '@tiptap/core';
+import { getSchema, Mark as TipTapMark, Node as TipTapNode, mergeAttributes, type JSONContent } from '@tiptap/core';
 import { generateJSON } from '@tiptap/html';
 import StarterKit from '@tiptap/starter-kit';
 import DOMPurify from 'dompurify';
@@ -39,8 +39,41 @@ export const VfsImage = TipTapNode.create({
   },
 });
 
+/** Inline font family (CSS name) and size (pt) applied to a text range. */
+export const FontStyle = TipTapMark.create({
+  name: 'fontStyle',
+  addAttributes() {
+    return {
+      family: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-font-family'),
+      },
+      size: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-font-size'),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'span[data-font-family], span[data-font-size]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    const { family, size } = HTMLAttributes as { family?: string | null; size?: string | null };
+    const attrs: Record<string, string> = {};
+    const style: string[] = [];
+    if (family) {
+      attrs['data-font-family'] = family;
+      style.push(`font-family: '${family.replace(/['"\\;]/g, '')}'`);
+    }
+    if (size) {
+      attrs['data-font-size'] = String(size);
+      style.push(`font-size: ${Number(size)}pt`);
+    }
+    return ['span', { ...attrs, style: style.join('; ') }, 0];
+  },
+});
 /** StarterKit covers paragraphs, headings, lists, bold, italic, underline, links, and history. */
-export const wordpadExtensions = [StarterKit, VfsImage];
+export const wordpadExtensions = [StarterKit, VfsImage, FontStyle];
 
 export const wordpadSchema = getSchema(wordpadExtensions);
 

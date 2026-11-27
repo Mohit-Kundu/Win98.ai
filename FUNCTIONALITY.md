@@ -42,9 +42,10 @@ What Win98.ai includes and what it does not. Status is based on `docs/PROGRESS.m
 - AI image generation into the canvas or a new file.
 
 ### WordPad
-- Rich text: bold, italic, underline, bullet list.
+- Rich text: bold, italic, underline, bullet and numbered lists, a paragraph style dropdown (Normal text, Heading 1 to 3), font and font size dropdowns (saved in `.wpd` only).
 - Insert images from the file system.
 - Undo and redo.
+- Inch ruler bar above the page with draggable left and right margin markers (margins are not saved with the document).
 - New, Open, Save, Save As (`.wpd` format).
 - Reads and writes `.txt` and `.md` as plain text.
 - AI assistant: write from a prompt and rewrite a selection. You accept or reject each AI edit.

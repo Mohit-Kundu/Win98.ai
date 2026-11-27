@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import {
   actions,
@@ -85,6 +85,7 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
   const [dirty, setDirty] = useState(false);
   const [dlg, setDlg] = useState<Dlg | null>(null);
   const [menu, setMenu] = useState<string | null>(null);
+  const [margins, setMargins] = useState<Margins>({ left: 0, right: 0 });
   const savedRef = useRef(norm(emptyDoc()));
   const fileRef = useRef<OpenFile | null>(null);
   const warnedRef = useRef(false);
@@ -397,12 +398,20 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
     setMenu(null);
     if (editor) fn(editor);
   };
-  const tool = (label: string, text: string, active: boolean, fn: (e: Editor) => void, disabled = false) => (
+  const tool = (label: string, text: ReactNode, active: boolean, fn: (e: Editor) => void, disabled = false) => (
     <button type="button" aria-label={label} title={label} aria-pressed={active} disabled={disabled || !editor} onClick={() => editor && fn(editor)}>
       {text}
     </button>
   );
 
+  const fontAttrs = (editor?.getAttributes('fontStyle') ?? {}) as { family?: string | null; size?: string | null };
+  const setFontAttr = (key: 'family' | 'size', value: string) => {
+    if (!editor) return;
+    const next = { family: fontAttrs.family ?? null, size: fontAttrs.size ?? null, [key]: value };
+    editor.chain().focus().setMark('fontStyle', next).run();
+  };
+  const activeLevel = ([1, 2, 3] as const).find((l) => editor?.isActive('heading', { level: l })) ?? 0;
+  const styleLabel = STYLES.find((x) => x.level === activeLevel)?.label ?? 'Normal text';
   const canUndo = editor?.can().undo() ?? false;
   const canRedo = editor?.can().redo() ?? false;
 
@@ -431,17 +440,67 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
         {tool('Bold', 'B', !!editor?.isActive('bold'), (e) => e.chain().focus().toggleBold().run())}
         {tool('Italic', 'I', !!editor?.isActive('italic'), (e) => e.chain().focus().toggleItalic().run())}
         {tool('Underline', 'U', !!editor?.isActive('underline'), (e) => e.chain().focus().toggleUnderline().run())}
-        {([1, 2, 3] as const).map((level) => (
-          <span key={level}>
-            {tool(`Heading ${level}`, `H${level}`, !!editor?.isActive('heading', { level }), (e) => e.chain().focus().toggleHeading({ level }).run())}
-          </span>
-        ))}
-        {tool('Bullet list', '\u2022', !!editor?.isActive('bulletList'), (e) => e.chain().focus().toggleBulletList().run())}
-        {tool('Undo', '\u21B6', false, (e) => e.chain().focus().undo().run(), !canUndo)}
-        {tool('Redo', '\u21B7', false, (e) => e.chain().focus().redo().run(), !canRedo)}
+        <select
+          className="wp-font"
+          aria-label="Font"
+          title="Font"
+          disabled={!editor}
+          value={fontAttrs.family ?? DEFAULT_FONT}
+          onChange={(e) => setFontAttr('family', e.target.value)}
+        >
+          {FONTS.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+        <select
+          className="wp-font-size"
+          aria-label="Font size"
+          title="Font size"
+          disabled={!editor}
+          value={fontAttrs.size ?? String(DEFAULT_SIZE)}
+          onChange={(e) => setFontAttr('size', e.target.value)}
+        >
+          {FONT_SIZES.map((n) => (
+            <option key={n} value={String(n)}>
+              {n}
+            </option>
+          ))}
+        </select>
+        <Menu label={styleLabel} open={menu === 'style'} onToggle={() => toggle('style')}>
+          {STYLES.map(({ label, level }) => {
+            const active = level === 0 ? !activeLevel : activeLevel === level;
+            return (
+              <li role="none" key={label}>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={active}
+                  className={`wp-style-item wp-style-${level}`}
+                  disabled={!editor}
+                  onClick={run((e) => {
+                    const c = e.chain().focus();
+                    if (level === 0) c.setParagraph().run();
+                    else c.setHeading({ level }).run();
+                  })}
+                >
+                  <span className="wp-style-check">{active ? '\u2713' : ''}</span>
+                  {label}
+                </button>
+              </li>
+            );
+          })}
+        </Menu>
+        {tool('Bullet list', <ListIcon numbered={false} />, !!editor?.isActive('bulletList'), (e) => e.chain().focus().toggleBulletList().run())}
+        {tool('Numbered list', <ListIcon numbered />, !!editor?.isActive('orderedList'), (e) => e.chain().focus().toggleOrderedList().run())}
+        {tool('Undo', <ArrowIcon />, false, (e) => e.chain().focus().undo().run(), !canUndo)}
+        {tool('Redo', <ArrowIcon flip />, false, (e) => e.chain().focus().redo().run(), !canRedo)}
       </div>
+      <Ruler margins={margins} onChange={setMargins} />
       <div
         className="wp-page"
+        style={{ paddingLeft: PAGE_PAD + margins.left, paddingRight: PAGE_PAD + margins.right }}
         onMouseDown={(e) => {
           // Clicking the padding or blank area below the text should still place the caret.
           if (e.target === e.currentTarget) {
@@ -474,6 +533,127 @@ export function WordPad({ windowId, launchArgs }: AppProps) {
       {dlg?.kind === 'prompt' && (
         <PromptDialog title={dlg.title} label={dlg.label} initialValue={dlg.initial} onSubmit={dlg.onSubmit} onCancel={() => setDlg(null)} />
       )}
+    </div>
+  );
+}
+
+/** 16x16 curved arrow like the Win98 WordPad undo icon; `flip` mirrors it for redo. */
+function ArrowIcon({ flip = false }: { flip?: boolean }) {
+  return (
+    <svg className="wp-arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style={flip ? { transform: 'scaleX(-1)' } : undefined}>
+      <path d="M5 2 L1 6 L5 10 L5 7.5 C9 7 11.5 8.5 12 12 C13 8 11 4.5 5 4.5 Z" fill="currentColor" />
+    </svg>
+  );
+}
+/** 16x16 list icon: bullets or tiny 1-2-3 digits on the left, three text lines on the right. */
+function ListIcon({ numbered }: { numbered: boolean }) {
+  return (
+    <svg className="wp-list-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+      {numbered ? (
+        <g fontFamily="Arial, sans-serif" fontSize="5" fontWeight="700">
+          <text x="0" y="5">1</text>
+          <text x="0" y="10">2</text>
+          <text x="0" y="15">3</text>
+        </g>
+      ) : (
+        <g>
+          <circle cx="2" cy="3.5" r="1.6" />
+          <circle cx="2" cy="8" r="1.6" />
+          <circle cx="2" cy="12.5" r="1.6" />
+        </g>
+      )}
+      <rect x="6" y="2.5" width="9" height="2" />
+      <rect x="6" y="7" width="9" height="2" />
+      <rect x="6" y="11.5" width="9" height="2" />
+    </svg>
+  );
+}
+const STYLES = [
+  { label: 'Normal text', level: 0 },
+  { label: 'Heading 1', level: 1 },
+  { label: 'Heading 2', level: 2 },
+  { label: 'Heading 3', level: 3 },
+] as const;
+const FONTS = ['Arial', 'Comic Sans MS', 'Courier New', 'Tahoma', 'Times New Roman', 'Verdana'];
+const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+const DEFAULT_FONT = 'Times New Roman';
+const DEFAULT_SIZE = 10;
+const PX_PER_INCH = 96;
+const RULER_INCHES = 12;
+const PAGE_PAD = 8;
+const MIN_TEXT_WIDTH = 96;
+
+interface Margins {
+  /** Extra left margin in px, added to the base page padding. */
+  left: number;
+  /** Extra right margin in px, added to the base page padding. */
+  right: number;
+}
+
+/** Inch ruler with draggable left and right margin markers. */
+function Ruler({ margins, onChange }: { margins: Margins; onChange: (m: Margins) => void }) {
+  const scaleRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ side: 'left' | 'right'; startX: number; start: number } | null>(null);
+  const step = PX_PER_INCH / 8;
+  const ticks = [];
+  for (let i = 0; i <= RULER_INCHES * 8; i++) {
+    const left = i * step;
+    if (i % 8 === 0) {
+      if (i > 0) {
+        ticks.push(
+          <span key={i} className="wp-ruler-num" style={{ left }}>
+            {i / 8}
+          </span>,
+        );
+      }
+    } else {
+      const kind = i % 4 === 0 ? 'half' : i % 2 === 0 ? 'quarter' : 'eighth';
+      ticks.push(<span key={i} className={`wp-ruler-tick wp-ruler-${kind}`} style={{ left }} />);
+    }
+  }
+  const move = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d) return;
+    const width = scaleRef.current?.getBoundingClientRect().width || 0;
+    const other = d.side === 'left' ? margins.right : margins.left;
+    const max = Math.max(0, width - other - MIN_TEXT_WIDTH);
+    const dx = e.clientX - d.startX;
+    const raw = d.start + (d.side === 'left' ? dx : -dx);
+    const snapped = Math.round(raw / (PX_PER_INCH / 8)) * (PX_PER_INCH / 8);
+    onChange({ ...margins, [d.side]: Math.min(max, Math.max(0, snapped)) });
+  };
+  const marker = (side: 'left' | 'right') => (
+    <div
+      className={`wp-ruler-marker wp-ruler-marker-${side}`}
+      role="slider"
+      aria-label={`${side === 'left' ? 'Left' : 'Right'} margin`}
+      aria-valuemin={0}
+      aria-valuenow={margins[side]}
+      title={`${side === 'left' ? 'Left' : 'Right'} margin`}
+      style={side === 'left' ? { left: margins.left } : { right: margins.right }}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        drag.current = { side, startX: e.clientX, start: margins[side] };
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+      }}
+      onPointerMove={move}
+      onPointerUp={() => {
+        drag.current = null;
+      }}
+      onPointerCancel={() => {
+        drag.current = null;
+      }}
+    />
+  );
+  return (
+    <div className="wp-ruler" data-testid="wp-ruler">
+      <div className="wp-ruler-scale" ref={scaleRef}>
+        <div className="wp-ruler-ticks" aria-hidden="true">
+          {ticks}
+        </div>
+        {marker('left')}
+        {marker('right')}
+      </div>
     </div>
   );
 }
